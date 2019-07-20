@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: cj-ticketsys
+  profiles:
+    active: dev
+  jackson:
+    time-zone: GMT+8
+
+
+management:
+  endpoint:
+    health:
+      enabled: true
+
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml
