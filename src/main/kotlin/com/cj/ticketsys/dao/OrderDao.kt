@@ -24,6 +24,11 @@ interface OrderDao {
     )
     fun updateState(orderId: String, state: OrderStates): Long
 
+    @Update(
+        "update orders set deleted=#{del} where order_id=#{orderId}"
+    )
+    fun updateDel(orderId: String, del: Boolean): Long
+
     @Delete(
         "delete from orders where order_id=#{orderNo}"
     )
@@ -35,9 +40,9 @@ interface OrderDao {
     fun getsByUidCount(uid: String, partnerId: String): Long
 
     @Select(
-        "select * from orders where ch_uid=#{uid} and ch_id=#{partnerId} order by create_time desc limit #{offset},#{size}"
+        "<script>select * from orders where ch_uid=#{uid} and ch_id=#{partnerId} <if test=\"state !=null\">and state=#{state}</if> and deleted=0 order by create_time desc limit #{offset},#{size}</script>"
     )
-    fun getsByUid(uid: String, partnerId: String, offset: Int, size: Int): List<Order>
+    fun getsByUid(uid: String, partnerId: String, state: OrderStates?, offset: Int = 0, size: Int = 20): List<Order>
 
     @Select(
         "select * from orders where order_id=#{id}"

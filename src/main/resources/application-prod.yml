@@ -10,7 +10,7 @@ server:
 spring:
   datasource:
     name: mydb
-    url: jdbc:mysql://${MYSQL_HOST}/cj_ticket?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+    url: jdbc:mysql://${MYSQL_HOST}/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
     username: ${MYSQL_USER}
     password: ${MYSQL_PWD}
     type: com.alibaba.druid.pool.DruidDataSource

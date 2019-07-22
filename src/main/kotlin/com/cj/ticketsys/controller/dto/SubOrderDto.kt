@@ -40,6 +40,10 @@ class SubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
     var userCard:String = ""
     @JsonProperty("user_mobile")
     var userMobile:String = ""
+    @JsonProperty("user_name")
+    var userName:String = ""
+    @JsonProperty("cid")
+    var cid:Int = 0
 
     var extra:MutableMap<String,Any> = TreeMap()
 

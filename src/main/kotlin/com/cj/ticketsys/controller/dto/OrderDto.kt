@@ -24,4 +24,7 @@ class OrderDto(@JsonProperty("order_no") val no:String) {
     @JsonProperty("sub_orders")
     var subOrders:MutableList<SubOrderDto> = ArrayList()
     var extra:MutableMap<String,Any> = TreeMap()
+
+    @JsonProperty("expire_seconds")
+    var expireSeconds:Int? = null
 }

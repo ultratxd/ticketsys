@@ -50,6 +50,24 @@ class OrderController : BaseController() {
         return ResultT(RESULT_SUCCESS, "ok", dto)
     }
 
+    @DeleteMapping("/{orderNo}")
+    fun del(
+        @PathVariable("orderNo", required = true) orderNo: String
+    ): Result {
+        if (Strings.isNullOrEmpty(orderNo)) {
+            return Result(RESULT_FAIL, "参数错误")
+        }
+        val order = orderDao.get(orderNo) ?: return Result(RESULT_FAIL, "订单不存在")
+        if(order.deleted) {
+            return Result(RESULT_FAIL, "订单已删除")
+        }
+        val c = orderDao.updateDel(orderNo,true)
+        if(c > 0) {
+            return Result(RESULT_SUCCESS, "ok")
+        }
+        return Result(RESULT_SUCCESS, "ok")
+    }
+
 
     @GetMapping("/sub/{id}")
     fun get(
@@ -66,6 +84,7 @@ class OrderController : BaseController() {
     @GetMapping("/my/{uid}")
     fun getMy(
         @PathVariable("uid", required = true) uid: String,
+        @RequestParam("state", required = false) state: Short?,
         @RequestParam("partner_id", required = false) partnerId: String?,
         @RequestParam("page", required = false) page: Int?
     ): ResultT<PagedList<OrderDto>> {
@@ -78,8 +97,16 @@ class OrderController : BaseController() {
         if (page != null && page > 0) {
             p = page
         }
+        var oState:OrderStates? = null
+        if(state != null) {
+            if (!OrderStates.values().any { s -> s.value == state}) {
+                return ResultT(RESULT_FAIL, "state状态不存在")
+            }
+            oState = OrderStates.prase(state.toInt())
+        }
+
         val offset = (p - 1) * size
-        val list = orderDao.getsByUid(uid, partnerId, offset, size)
+        val list = orderDao.getsByUid(uid, partnerId, oState, offset, size)
         val dtos = ArrayList<OrderDto>()
         for (order in list) {
             val dto = orderTransformer.transform(order)!!

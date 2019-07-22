@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
 
 @Component
-class OrderDocTransformer:DocTransformer<Order,OrderDto> {
+class OrderDocTransformer : DocTransformer<Order, OrderDto> {
 
     @Autowired
     private lateinit var subOrderDao: SubOrderDao
@@ -37,19 +37,26 @@ class OrderDocTransformer:DocTransformer<Order,OrderDto> {
         val spotDtos = subs.map { a -> subOrderDocTransformer.transform(a)!! }
         dto.subOrders.addAll(spotDtos)
 
-        bindOrderTicketCode(data,dto)
+        bindOrderTicketCode(data, dto)
+
+        if (data.state == OrderStates.Init) {
+            val expireTime = data.createTime.time + 60 * 60 * 1000
+            if (expireTime > System.currentTimeMillis()) {
+                dto.expireSeconds = ((expireTime - System.currentTimeMillis()) / 1000).toInt()
+            }
+        }
 
         return dto
     }
 
 
-    fun bindOrderTicketCode(data: Order, dto:OrderDto) {
-        if(OrderStates.Issued.value <= data.state.value && OrderStates.Closed.value > data.state.value) {
+    fun bindOrderTicketCode(data: Order, dto: OrderDto) {
+        if (OrderStates.Issued.value <= data.state.value && OrderStates.Closed.value > data.state.value) {
             val tcode = orderTicketCodeDao.get(data.orderId)
-            if(tcode != null) {
-                dto.extra.put("ticket_code",tcode.code)
+            if (tcode != null) {
+                dto.extra.put("ticket_code", tcode.code)
                 dto.extra.put("code_use_date", SimpleDateFormat("yyyy-MM-dd").format(tcode.useDate))
-                dto.extra.put("code_use_state",tcode.state.value)
+                dto.extra.put("code_use_state", tcode.state.value)
             }
         }
     }

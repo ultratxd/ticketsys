@@ -15,6 +15,7 @@ class Order:PropertyEntity() {
     var ip:String = ""
     var channelId:String = ""
     var channelUid:String = ""
+    var deleted = false
 
     var issueTicketTime:Date?
         get() = this.getProperty("issue_ticket_time") as Date?

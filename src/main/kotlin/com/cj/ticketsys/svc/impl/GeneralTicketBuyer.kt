@@ -8,6 +8,7 @@ import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.CardTypes
 import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.SubOrder
+import com.cj.ticketsys.entities.Ticket
 import com.cj.ticketsys.svc.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -37,6 +38,9 @@ class GeneralTicketBuyer : TicketBuyer {
 
     @Autowired
     private lateinit var inventoryManagement: InventoryManagement
+
+    @Autowired
+    private lateinit var ticketSnapshotCreator: SnapshotCreator<Ticket,TicketSnapshot>
 
     @Transactional(rollbackFor = [Exception::class])
     @Synchronized
@@ -82,17 +86,16 @@ class GeneralTicketBuyer : TicketBuyer {
             subOrder.uMobile = bt.userMobile
             subOrder.scenicId = scenic.pid
             subOrder.scenicSid = scenic.id
-            subOrder.ticketId = ticket.id
+            subOrder.ticketId = ts.id
             subOrder.ticketPid = bt.ticketPriceId
             subOrder.unitPrice = price.price
             subOrder.totalPrice = price.price * bt.ticketNums
             subOrder.nums = bt.ticketNums
-            subOrder.pernums = ticket.perNums
+            subOrder.pernums = ts.perNums
             subOrder.useDate = Utils.intToDate(bt.date)
-            subOrder.cid = ticket.cid
+            subOrder.cid = ts.cid
 
-            ticket.prices.add(price)
-            subOrder.snapshot = JSON.toJSONString(ticket)
+            subOrder.snapshot = JSON.toJSONString(ticketSnapshotCreator.create(ts))
             subOrders.add(subOrder)
         }
         val buyOrder = Order()

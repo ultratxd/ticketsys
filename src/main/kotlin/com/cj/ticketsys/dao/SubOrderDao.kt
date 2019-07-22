@@ -19,7 +19,7 @@ interface SubOrderDao {
     fun update(order: SubOrder): Long
 
     @Update(
-        "update  set state=#{state} where where id=#{id}"
+        "update sub_orders set state=#{state} where id=#{id}"
     )
     fun updateState(id: Int, state: OrderStates): Long
 

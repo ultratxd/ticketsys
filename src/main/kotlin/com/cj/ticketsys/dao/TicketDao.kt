@@ -65,7 +65,7 @@ interface TicketDao {
 
 
     @Select(
-        "select t.* from tags t join ticket_tags tt on tt.tagid=t.id where tt.tid=#{ticketId}"
+        "select tg.* from tags tg join ticket_tags tt on tt.tagid=tg.id where tg.t=1 and tt.tid=#{ticketId}"
     )
     @Results(
         Result(column = "t", property = "type")
@@ -76,4 +76,9 @@ interface TicketDao {
         "select to_tid from ticket_tkts where from_tid=#{ticketId}"
     )
     fun getRelatedTicket(ticketId:Int): List<Int>
+
+    @Select(
+        "select * from tags tg where tg.t=2"
+    )
+    fun getCategories(): List<Tag>
 }
