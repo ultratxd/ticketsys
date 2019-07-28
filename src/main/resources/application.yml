@@ -6,6 +6,8 @@ spring:
   jackson:
     time-zone: GMT+8
 
+logging:
+  config: classpath:logging-config.xml
 
 management:
   endpoint:

@@ -1,10 +1,11 @@
-package com.cj.ticketsys.controller.dto
+package com.cj.ticketsys.controller.manage.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
-import kotlin.collections.ArrayList
 
-open class TicketDto(@JsonProperty("id") val id: Int) {
+class MTicketDto(val id: Int) {
+    @JsonProperty("cloud_id")
+    var cloudId:String = ""
     var name: String = ""
     @JsonProperty("per_nums")
     var pernums:Int = 0
@@ -17,7 +18,7 @@ open class TicketDto(@JsonProperty("id") val id: Int) {
     var soldCount: Int = 0
     var state: Short? = null
     @JsonProperty("prices")
-    var prices:MutableList<TicketPriceDto> = ArrayList()
+    var prices:MutableList<MTicketPriceDto> = ArrayList()
     @JsonProperty("cid")
     var cid:Int = 0
     @JsonProperty("icon_url")
@@ -28,5 +29,7 @@ open class TicketDto(@JsonProperty("id") val id: Int) {
     var extra:MutableMap<String,Any> = TreeMap()
 
     @JsonProperty("related_tickets")
-    var relatedTickets:MutableList<TicketDto>? = null
+    var relatedTickets:MutableList<MTicketDto>? = null
+    @JsonProperty("create_time")
+    var createTime: Date? = null
 }

@@ -5,6 +5,7 @@ import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.OrderTicketCode
+import com.cj.ticketsys.entities.OrderTicketCodeProviders
 import com.cj.ticketsys.entities.TicketCodeStates
 import com.cj.ticketsys.svc.IssueTicketDeliver
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,7 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
         tCode.nums = subOrders.sumBy { a -> a.nums }
         tCode.state = TicketCodeStates.Unused
         tCode.createTime = Date()
+        tCode.provider = OrderTicketCodeProviders.System
         tCode.useDate = subOrders.first().useDate!!
         tCode.code = makeCode(subOrders.first().useDate!!)
 

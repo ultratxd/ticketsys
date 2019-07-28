@@ -1,9 +1,12 @@
-package com.cj.ticketsys.controller.dto
+package com.cj.ticketsys.controller.manage.dto
 
+import com.cj.ticketsys.controller.dto.TicketPriceDto
+import com.cj.ticketsys.controller.dto.TicketUseDateDto
+import com.cj.ticketsys.entities.TicketStockLimitTypes
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-open class TicketPriceDto(@JsonProperty("id") val id: Int) {
+class MTicketPriceDto(val id: Int) {
     @JsonProperty("ticket_id")
     var tid: Int = 0
     @JsonProperty("use_date")
@@ -27,4 +30,8 @@ open class TicketPriceDto(@JsonProperty("id") val id: Int) {
     @JsonProperty("description")
     var description: String? = null
     var extra:MutableMap<String,Any> = TreeMap()
+    @JsonProperty("create_time")
+    var createTime: Date? = null
+    @JsonProperty("stock_limit_type")
+    var stockLimitType: TicketStockLimitTypes? = null
 }

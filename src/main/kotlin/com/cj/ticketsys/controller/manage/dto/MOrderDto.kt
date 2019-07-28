@@ -1,18 +1,18 @@
-package com.cj.ticketsys.controller.dto
+package com.cj.ticketsys.controller.manage.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 import kotlin.collections.ArrayList
 
-open class OrderDto(@JsonProperty("order_no") val no:String) {
+class MOrderDto(@JsonProperty("order_no") val no:String) {
     @JsonProperty("create_time")
     var createTime: Date = Date()
     @JsonProperty("pay_time")
-    var payTime:Date? = null
+    var payTime: Date? = null
     @JsonProperty("pay_no")
     var payNo:String? = null
     @JsonProperty("refund_time")
-    var refundTime:Date? = null
+    var refundTime: Date? = null
     @JsonProperty("refund_no")
     var refundNo:String? = null
     @JsonProperty("price")
@@ -21,10 +21,16 @@ open class OrderDto(@JsonProperty("order_no") val no:String) {
     var childs:Int = 0
     @JsonProperty("state")
     var state:Short = 0
+    @JsonProperty("ip")
+    var ip:String = ""
+    @JsonProperty("channel_id")
+    var channelId:String = ""
+    @JsonProperty("channel_uid")
+    var channelUid:String = ""
+    @JsonProperty("deleted")
+    var deleted:Boolean = false
     @JsonProperty("sub_orders")
-    var subOrders:MutableList<SubOrderDto> = ArrayList()
-    var extra:MutableMap<String,Any> = TreeMap()
+    var subOrders:MutableList<MSubOrderDto> = ArrayList()
 
-    @JsonProperty("expire_seconds")
-    var expireSeconds:Int? = null
+    var extra:MutableMap<String,Any> = TreeMap()
 }

@@ -1,19 +1,20 @@
-package com.cj.ticketsys.controller.dto
+package com.cj.ticketsys.controller.manage.dto
 
+import com.cj.ticketsys.controller.dto.TicketSnapshotDto
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-open class SubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
+class MSubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
     @JsonProperty("create_time")
     var createTime: Date = Date()
     @JsonProperty("pay_time")
-    var payTime:Date? = null
+    var payTime: Date? = null
     @JsonProperty("pay_no")
     var payNo:String? = null
     @JsonProperty("refund_time")
-    var refundTime:Date? = null
+    var refundTime: Date? = null
     @JsonProperty("refund_no")
-    var refundNo:Date? = null
+    var refundNo: Date? = null
     @JsonProperty("uid")
     var uid:String = ""
     @JsonProperty("scenic_id")
@@ -31,9 +32,9 @@ open class SubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String
     var pernums:Int = 0
     var state:Short = 0
     @JsonProperty("use_date")
-    var useDate:Date? = null
+    var useDate: Date? = null
     @JsonProperty("last_use_date")
-    var lastUseDate:Date? = null
+    var lastUseDate: Date? = null
     @JsonProperty("card_type")
     var cardType:Short = 0
     @JsonProperty("user_card")
@@ -44,9 +45,11 @@ open class SubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String
     var userName:String = ""
     @JsonProperty("cid")
     var cid:Int = 0
+    @JsonProperty("category_name")
+    var categoryName:String? = ""
 
     var extra:MutableMap<String,Any> = TreeMap()
 
     @JsonProperty("ticket_snapshot")
-    var ticketSnapshot:TicketSnapshotDto? = null
+    var ticketSnapshot: TicketSnapshotDto? = null
 }

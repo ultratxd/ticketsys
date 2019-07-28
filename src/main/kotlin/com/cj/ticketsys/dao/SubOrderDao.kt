@@ -23,6 +23,11 @@ interface SubOrderDao {
     )
     fun updateState(id: Int, state: OrderStates): Long
 
+    @Update(
+        "update sub_orders set state=#{state} where order_id=#{orderNo}"
+    )
+    fun updateStateByOrderNo(orderNo: String, state: OrderStates): Long
+
     @Delete(
         "delete from sub_orders where order_id=#{orderNo}"
     )

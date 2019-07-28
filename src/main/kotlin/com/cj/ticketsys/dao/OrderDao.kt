@@ -35,7 +35,7 @@ interface OrderDao {
     fun delete(orderNo: String): Long
 
     @Select(
-        "select count(0) from orders where ch_uid=#{uid} and ch_id=#{partnerId}"
+        "select count(0) from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0"
     )
     fun getsByUidCount(uid: String, partnerId: String): Long
 
@@ -73,4 +73,59 @@ interface OrderDao {
         Result(column = "ch_uid", property = "channelUid")
     )
     fun getExpiredOrders(expirationDate: Date): List<Order>
+
+
+    @Select(
+        "<script>" +
+                "select count(DISTINCT o.order_id) from orders o join sub_orders so on o.order_id=so.order_id " +
+                "<where>"+
+                "<if test=\"state !=null\">and o.state=#{state}</if>" +
+                "<if test=\"payNo !=null\">and o.pay_no=#{payNo}</if>" +
+                "<if test=\"refundNo !=null\">and o.refund_no=#{refundNo}</if>" +
+                "<if test=\"chId !=null\">and o.ch_id=#{chId}</if>" +
+                "<if test=\"chUid !=null\">and o.ch_uid=#{chUid}</if>" +
+                "<if test=\"userName !=null\">and so.uname=#{userName}</if>" +
+                "<if test=\"userCard !=null\">and so.ucard=#{userCard}</if>" +
+                "<if test=\"userMobile !=null\">and so.umobile=#{userMobile}</if>" +
+                "<if test=\"scenicId !=null\">and so.scenic_id=#{scenicId}</if>" +
+                "<if test=\"scenicSid !=null\">and so.scenic_sid=#{scenicSid}</if>" +
+                "<if test=\"ticketId !=null\">and so.ticket_id=#{ticketId}</if>" +
+                "<if test=\"cid !=null\">and so.cid=#{cid}</if>" +
+                "</where>" +
+        "</script>"
+    )
+    fun searchForAdminCount(query: OrderQuery):Long
+
+    @Select(
+        "<script>" +
+                "select DISTINCT o.order_id,o.* from orders o join sub_orders so on o.order_id=so.order_id " +
+                "<where>"+
+                "<if test=\"state !=null\">and o.state=#{state}</if>" +
+                "<if test=\"payNo !=null\">and o.pay_no=#{payNo}</if>" +
+                "<if test=\"refundNo !=null\">and o.refund_no=#{refundNo}</if>" +
+                "<if test=\"chId !=null\">and o.ch_id=#{chId}</if>" +
+                "<if test=\"chUid !=null\">and o.ch_uid=#{chUid}</if>" +
+                "<if test=\"userName !=null\">and so.uname=#{userName}</if>" +
+                "<if test=\"userCard !=null\">and so.ucard=#{userCard}</if>" +
+                "<if test=\"userMobile !=null\">and so.umobile=#{userMobile}</if>" +
+                "<if test=\"scenicId !=null\">and so.scenic_id=#{scenicId}</if>" +
+                "<if test=\"scenicSid !=null\">and so.scenic_sid=#{scenicSid}</if>" +
+                "<if test=\"ticketId !=null\">and so.ticket_id=#{ticketId}</if>" +
+                "<if test=\"cid !=null\">and so.cid=#{cid}</if>" +
+                "</where>" +
+                " order by o.create_time desc" +
+                " limit #{offset},#{size}" +
+        "</script>"
+    )
+    @Results(
+        Result(column = "order_id", property = "orderId"),
+        Result(column = "create_time", property = "createTime"),
+        Result(column = "pay_time", property = "payTime"),
+        Result(column = "pay_no", property = "payNo"),
+        Result(column = "refund_time", property = "refundTime"),
+        Result(column = "refund_no", property = "refundNo"),
+        Result(column = "ch_id", property = "channelId"),
+        Result(column = "ch_uid", property = "channelUid")
+    )
+    fun searchForAdmin(query: OrderQuery):List<Order>
 }

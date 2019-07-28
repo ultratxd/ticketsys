@@ -2,7 +2,8 @@ package com.cj.ticketsys.controller.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-class TicketUseDateDto {
+open class TicketUseDateDto {
+    var id:Int = 0
     var name:String = ""
     var remark:String = ""
     @JsonProperty("work_day")

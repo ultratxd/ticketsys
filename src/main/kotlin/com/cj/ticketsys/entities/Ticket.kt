@@ -5,6 +5,7 @@ import kotlin.collections.ArrayList
 
 class Ticket : PropertyEntity() {
     var id: Int = 0
+    var cloudId:String = ""
     var name: String = ""
     var perNums: Int = 0
     var createTime: Date = Date()

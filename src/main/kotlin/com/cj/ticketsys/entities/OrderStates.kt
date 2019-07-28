@@ -8,6 +8,7 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
     ReadyRefund(20),
     Refunded(30),
     Used(40),
+    Cancel(50),
     Closed(99);
 
     override fun code(): Int {
@@ -24,6 +25,7 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
                 20 -> return ReadyRefund
                 30 -> return Refunded
                 40 -> return Used
+                50 -> return Cancel
                 99 -> return Closed
             }
             throw IllegalArgumentException("value不存在枚举")

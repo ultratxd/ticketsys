@@ -3,6 +3,7 @@ package com.cj.ticketsys.controller
 import com.cj.ticketsys.controller.dto.*
 import com.cj.ticketsys.controller.req.BuyRequest
 import com.cj.ticketsys.dao.PartnerDao
+import com.cj.ticketsys.dao.RecommendDao
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.CardTypes
@@ -12,6 +13,7 @@ import com.cj.ticketsys.svc.*
 import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -32,6 +34,9 @@ class TicketController : BaseController() {
 
     @Autowired
     private lateinit var ticketPriceDao: TicketPriceDao
+
+    @Autowired
+    private lateinit var recommendDao: RecommendDao
 
     @Autowired
     private lateinit var ticketDocTransformer: DocTransformer<Ticket, TicketDto>
@@ -124,6 +129,9 @@ class TicketController : BaseController() {
         for (rTid in relatedTickets) {
             val relTk = ticketDao.get(rTid)
             if (relTk != null) {
+                if(!relTk.frontView) {
+                    continue
+                }
                 priceBinder.bind(relTk, partner.channelType, Utils.intToDate(date))
                 dto.relatedTickets!!.add(ticketDocTransformer.transform(relTk)!!)
             }
@@ -173,9 +181,32 @@ class TicketController : BaseController() {
     @GetMapping("/recommends")
     fun recommendTickets(
         @RequestParam("nums", required = false) nums: Int?,
+        @RequestParam("date", required = false) date: Int?,
         @RequestParam("partner_id", required = false) partnerId: String?
     ): ResultT<List<TicketDto>> {
-        return ResultT(RESULT_FAIL, "稍等")
+        if(nums == null || Strings.isNullOrEmpty(partnerId)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        var buyDate = SimpleDateFormat("yyyyMMdd").format(Date()).toInt()
+        if (date != null && date.toString().length == 8) {
+            buyDate = date
+        }
+        val rems = recommendDao.gets(nums, 1)
+        val tickets = ArrayList<Ticket>()
+        for(r in rems) {
+            val ticket = ticketDao.get(r.refId)
+            if(ticket != null) {
+                tickets.add(ticket)
+            }
+        }
+        val partner = partnerDao.get(partnerId!!) ?: return ResultT(RESULT_FAIL, "商户不存在")
+        val dtos = ArrayList<TicketDto>()
+        for (ticket in tickets) {
+            priceBinder.bind(ticket, partner.channelType, Utils.intToDate(buyDate))
+            val dto = ticketDocTransformer.transform(ticket)!!
+            dtos.add(dto)
+        }
+        return ResultT(RESULT_SUCCESS, "ok", dtos)
     }
 
     @PostMapping("/buy")

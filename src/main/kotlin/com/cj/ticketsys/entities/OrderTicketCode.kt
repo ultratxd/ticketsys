@@ -11,4 +11,6 @@ class OrderTicketCode : PropertyEntity(){
     var createTime:Date = Date()
     var useDate:Date = Date()
     var usedTime:Date? = null
+    var provider:OrderTicketCodeProviders = OrderTicketCodeProviders.System
+    var providerNo:String = ""
 }

@@ -11,6 +11,7 @@ interface TicketDao {
         "select * from ticket where id=#{id}"
     )
     @Results(
+        Result(column = "cloud_id", property = "cloudId"),
         Result(column = "create_time", property = "createTime"),
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
@@ -29,21 +30,81 @@ interface TicketDao {
                 "<if test='cid != null'>" +
                 " and t.cid=#{cid} " +
                 "</if>" +
+                "<if test='frontView != null'>" +
+                " and t.front_view=#{frontView} " +
+                "</if>" +
                 "</where>" +
                 "</script>"
     )
     @Results(
+        Result(column = "cloud_id", property = "cloudId"),
         Result(column = "create_time", property = "createTime"),
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark",property = "buyRemark"),
         Result(column = "front_view", property = "frontView")
     )
-    fun gets(sid: Int,cid: Int? = null): List<Ticket>
+    fun gets(sid: Int,cid: Int? = null,frontView:Boolean? = true): List<Ticket>
+
+    @Select(
+        "<script>select count(DISTINCT(t.id)) from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
+                "<where>" +
+                "<if test='sid != null'>" +
+                " and st.scenic_sid=#{sid} " +
+                "</if>" +
+                "<if test='name != null'>" +
+                " and t.name like concat('%', #{name}, '%') " +
+                "</if>" +
+                "<if test='state != null'>" +
+                " and t.state=#{state}" +
+                "</if>" +
+                "<if test='cid != null'>" +
+                " and t.cid=#{cid} " +
+                "</if>" +
+                "<if test='frontView != null'>" +
+                " and t.front_view=#{frontView} " +
+                "</if>" +
+                "</where>" +
+                "</script>"
+    )
+    fun searchCountForAdmin(query:TicketQuery):Long
+
+    @Select(
+        "<script>select DISTINCT(t.id),t.* from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
+                "<where>" +
+                "<if test='sid != null'>" +
+                " and st.scenic_sid=#{sid} " +
+                "</if>" +
+                "<if test='name != null'>" +
+                " and t.name like concat('%', #{name}, '%') " +
+                "</if>" +
+                "<if test='state != null'>" +
+                " and t.state=#{state}" +
+                "</if>" +
+                "<if test='cid != null'>" +
+                " and t.cid=#{cid} " +
+                "</if>" +
+                "<if test='frontView != null'>" +
+                " and t.front_view=#{frontView} " +
+                "</if>" +
+                "</where>" +
+                " order by create_time desc" +
+                " limit #{offset},#{size}" +
+                "</script>"
+    )
+    @Results(
+        Result(column = "cloud_id", property = "cloudId"),
+        Result(column = "create_time", property = "createTime"),
+        Result(column = "refund_type", property = "refundType"),
+        Result(column = "enter_remark", property = "enterRemark"),
+        Result(column = "buy_remark",property = "buyRemark"),
+        Result(column = "front_view", property = "frontView")
+    )
+    fun searchForAdmin(query:TicketQuery):List<Ticket>
 
     @Insert(
-        "insert into ticket(`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties) " +
-                "values(#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
+        "insert into ticket(cloud_id,`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties) " +
+                "values(#{cloudId}#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
     )
     fun insert(ticket: Ticket): Long
 
@@ -81,4 +142,6 @@ interface TicketDao {
         "select * from tags tg where tg.t=2"
     )
     fun getCategories(): List<Tag>
+
+
 }

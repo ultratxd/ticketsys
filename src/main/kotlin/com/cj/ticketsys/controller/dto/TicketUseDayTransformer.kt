@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component
 class TicketUseDayTransformer: DocTransformer<TicketUseDate,TicketUseDateDto> {
     override fun transform(data: TicketUseDate): TicketUseDateDto? {
         val dto = TicketUseDateDto()
+        dto.id = data.id
         dto.name = data.name
         dto.remark = data.remark
         dto.workDay = data.workDay

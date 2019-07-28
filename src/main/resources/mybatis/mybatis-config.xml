@@ -29,7 +29,8 @@
                      javaType="com.cj.ticketsys.entities.CardTypes"/>
         <typeHandler handler="com.cj.ticketsys.entities.EnumTypeHandler"
                      javaType="com.cj.ticketsys.entities.TicketCodeStates"/>
-
+        <typeHandler handler="com.cj.ticketsys.entities.EnumTypeHandler"
+                     javaType="com.cj.ticketsys.entities.OrderTicketCodeProviders"/>
     </typeHandlers>
     <!--<plugins>-->
     <!--<plugin interceptor="com.jhh.pay.center.cfg.tablesplit.TableSplitInterceptor">-->

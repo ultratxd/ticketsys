@@ -116,6 +116,20 @@ class OrderController : BaseController() {
         return ResultT(RESULT_SUCCESS, "ok", pList)
     }
 
+    @PutMapping("/cancel/{orderNo}")
+    fun cancel(
+        @PathVariable("orderNo", required = true) orderNo: String
+    ):Result {
+        if (Strings.isNullOrEmpty(orderNo)) {
+            return Result(RESULT_FAIL, "参数错误")
+        }
+        val ok = orderSvc.cancelOrder(orderNo)
+        if(ok) {
+            return Result(RESULT_SUCCESS, "ok")
+        }
+        return Result(RESULT_FAIL, "fail")
+    }
+
     @PutMapping("/pay/success")
     fun paySuccess(
         @RequestParam("order_no", required = true) orderNo: String?,
@@ -139,7 +153,7 @@ class OrderController : BaseController() {
         val ok = orderSvc.completedPay(orderNo, Date(payTime * 1000),payNo!!)
         if(ok) {
             IssueTicketRunner.run(Runnable {
-                val deliver = SpringAppContext.getBean(IssueTicketDeliver::class.java)
+                val deliver = SpringAppContext.getBean("Def_Issue_Ticket_Deliver") as IssueTicketDeliver
                 deliver.issue(orderNo)
             })
 
