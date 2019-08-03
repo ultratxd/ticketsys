@@ -9,10 +9,13 @@ import com.cj.ticketsys.entities.OrderTicketCode
 import com.cj.ticketsys.entities.OrderTicketCodeProviders
 import com.cj.ticketsys.entities.TicketCodeStates
 import com.cj.ticketsys.svc.IssueTicketDeliver
+import com.cj.ticketsys.svc.Utils
 import com.cj.ticketsys.svc.entrance.CreateOrderParameter
 import com.cj.ticketsys.svc.entrance.EntranceConsts
 import com.cj.ticketsys.svc.entrance.SCApi
 import com.cj.ticketsys.svc.entrance.VisitPerson
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -62,15 +65,17 @@ class ShuchenIssueTicketDeliver : IssueTicketDeliver {
         //待确认
         //...
         p.orderSerialId = order.orderId
-        p.productNo = ticket!!.cloudId
+        p.productNo = "10899"//ticket!!.cloudId
         p.payType = 1
         p.tickets = subOrders.sumBy { s -> s.pernums }
         p.price = (order.price * 100).toLong()
         p.bookName = firstSub.uName
         p.bookMobile = firstSub.uMobile
         p.idCard = firstSub.uCard
-        p.travelDate = SimpleDateFormat("yyyy-MM-dd").format(firstSub.useDate!!)
-        p.visitPerson = listOf(VisitPerson(firstSub.uName, firstSub.uMobile, firstSub.uCard))
+//        val fmt = SimpleDateFormat("yyyy-MM-dd")
+//        fmt.timeZone = TimeZone.getTimeZone("Asia/Shanghai")
+        p.travelDate = Utils.dateZoneFormat(firstSub.useDate!!,"yyyy-MM-dd") //fmt.format(firstSub.useDate!!)
+        p.visitPerson.add(VisitPerson(firstSub.uName, firstSub.uMobile, firstSub.uCard))
 
 
         val result = scapi.createOrder(p)

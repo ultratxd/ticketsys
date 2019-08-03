@@ -3,7 +3,7 @@ package com.cj.ticketsys.controller.manage.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-class MScenicSpotDto(@JsonProperty("id") id: Int) {
+class MScenicSpotDto(@JsonProperty("id") val id: Int) {
     var pid:Int = 0
     var name:String = ""
     @JsonProperty("ticket_count")

@@ -28,7 +28,7 @@ interface ScenicDao {
 
 
     @Update(
-        "update scenic set `name`=#{name},addr=#{address},create_time=#{createTime},properties=#{properties} where id=#{id}"
+        "update scenic set `name`=#{name},addr=#{address},properties=#{properties} where id=#{id}"
     )
     fun update(scenic:Scenic):Long
 

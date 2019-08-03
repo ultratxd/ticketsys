@@ -6,9 +6,11 @@ import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.SubOrder
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.Utils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
+import java.util.*
 
 @Component
 class OrderDocTransformer : DocTransformer<Order, OrderDto> {
@@ -55,7 +57,10 @@ class OrderDocTransformer : DocTransformer<Order, OrderDto> {
             val tcode = orderTicketCodeDao.get(data.orderId)
             if (tcode != null) {
                 dto.extra.put("ticket_code", tcode.code)
-                dto.extra.put("code_use_date", SimpleDateFormat("yyyy-MM-dd").format(tcode.useDate))
+//                val fmt = SimpleDateFormat("yyyy-MM-dd")
+//                fmt.timeZone = TimeZone.getTimeZone("Asia/Shanghai")
+//                dto.extra.put("code_use_date", fmt.format(tcode.useDate))
+                dto.extra.put("code_use_date", Utils.dateZoneFormat(tcode.useDate, "yyyy-MM-dd"))
                 dto.extra.put("code_use_state", tcode.state.value)
             }
         }

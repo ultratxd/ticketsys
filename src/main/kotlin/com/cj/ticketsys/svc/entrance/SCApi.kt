@@ -192,7 +192,7 @@ class CreateOrderParameter {
     var bookMobile: String = ""
     var idCard: String = ""
     var travelDate: String = ""
-    var visitPerson:List<VisitPerson> = ArrayList()
+    var visitPerson:MutableList<VisitPerson> = ArrayList()
 }
 
 data class VisitPerson(val name:String = "",val mobile:String = "",val idCard: String = "")

@@ -1,6 +1,7 @@
-package com.cj.ticketsys.svc
+package com.cj.ticketsys.svc.impl
 
 import com.cj.ticketsys.cfg.cache.Cache
+import com.cj.ticketsys.svc.IdBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat

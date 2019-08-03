@@ -8,4 +8,15 @@ enum class TicketStates(val value:Short) : CodeBaseEnum {
     override fun code(): Int {
         return this.value.toInt()
     }
+
+    companion object {
+        fun prase(value: Int): TicketStates {
+            when (value) {
+                1 -> return Enabled
+                2 -> return Disabled
+                3 -> return Stop
+            }
+            throw IllegalArgumentException("value不存在枚举")
+        }
+    }
 }

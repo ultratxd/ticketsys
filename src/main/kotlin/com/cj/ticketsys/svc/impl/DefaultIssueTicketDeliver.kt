@@ -8,6 +8,7 @@ import com.cj.ticketsys.entities.OrderTicketCode
 import com.cj.ticketsys.entities.OrderTicketCodeProviders
 import com.cj.ticketsys.entities.TicketCodeStates
 import com.cj.ticketsys.svc.IssueTicketDeliver
+import com.cj.ticketsys.svc.Utils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -42,22 +43,24 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
         tCode.code = makeCode(subOrders.first().useDate!!)
 
         val c = orderTicketCodeDao.insert(tCode)
-        if(c > 0) {
+        if (c > 0) {
             order.state = OrderStates.Issued
             order.issueTicketTime = Date()
             orderDao.update(order)
 
-            subOrders.map { s -> {
-                s.state = OrderStates.Issued
-                s.issueTicketTime = Date()
-                subOrderDao.update(s)
-            } }
+            subOrders.map { s ->
+                {
+                    s.state = OrderStates.Issued
+                    s.issueTicketTime = Date()
+                    subOrderDao.update(s)
+                }
+            }
         }
     }
 
     fun makeCode(date: Date): String {
-        val datefmt = SimpleDateFormat("yyMMdd")
-        val ydm = datefmt.format(date)
+//        val datefmt = SimpleDateFormat("yyMMdd")
+        val ydm = Utils.dateZoneFormat(date, "yyMMdd")//datefmt.format(date)
         val rnd = Random().nextInt(1000000)
         return "$ydm$rnd"
     }

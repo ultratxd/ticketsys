@@ -1,4 +1,4 @@
-package com.cj.ticketsys.svc
+package com.cj.ticketsys.svc.impl
 
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
@@ -7,6 +7,7 @@ import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.DateTypes
 import com.cj.ticketsys.entities.Ticket
 import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.svc.PriceBinder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat

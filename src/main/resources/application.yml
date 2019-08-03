@@ -2,7 +2,7 @@ spring:
   application:
     name: cj-ticketsys
   profiles:
-    active: dev
+    active: prod
   jackson:
     time-zone: GMT+8
 

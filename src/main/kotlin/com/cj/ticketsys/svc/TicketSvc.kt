@@ -1,15 +1,30 @@
 package com.cj.ticketsys.svc
 
-import com.cj.ticketsys.entities.ChannelTypes
-import com.cj.ticketsys.entities.Ticket
-import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.entities.*
 import java.util.*
 
 interface TicketSvc {
 
     fun getTicket(ticketId: Int, scenicSid: Int, date: Date, channelType: ChannelTypes): Ticket?
 
-    fun getTickets(scenicSid: Int, date: Date, channelType: ChannelTypes):Collection<Ticket>
+    fun getTickets(scenicSid: Int, date: Date, channelType: ChannelTypes): Collection<Ticket>
 
-    fun getTicketInMonth(ticketId: Int,year:Int, month: Int, channelType: ChannelTypes): Map<Int,Collection<TicketPrice>>
+    fun getTicketInMonth(
+        ticketId: Int,
+        year: Int,
+        month: Int,
+        channelType: ChannelTypes
+    ): Map<Int, Collection<TicketPrice>>
+
+    fun createTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean
+
+    fun updateTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean
+
+
+    /**
+     * 添加价格
+     */
+    fun createPrice(price: TicketPrice, uDate: TicketUseDate): Boolean
+
+    fun updatePrice(price: TicketPrice, uDate: TicketUseDate): Boolean
 }

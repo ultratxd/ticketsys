@@ -1,6 +1,8 @@
 package com.cj.ticketsys.svc
 
+import com.cj.ticketsys.cfg.SpringAppContext
 import com.cj.ticketsys.dao.OrderDao
+import com.cj.ticketsys.dao.OrderQuery
 import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.svc.impl.PriceInventoryManagement
@@ -12,7 +14,7 @@ import java.lang.Exception
 import java.util.*
 
 @Service
-class OrderExpireScheduler {
+class OrderScheduler {
 
     @Autowired
     private lateinit var orderDao: OrderDao
@@ -39,6 +41,19 @@ class OrderExpireScheduler {
                 subOrderDao.updateState(subOrder.id, OrderStates.Closed)
             }
             orderDao.updateState(order.orderId, OrderStates.Closed)
+        }
+    }
+
+    @Scheduled(fixedRate = (1000 * 30).toLong(), initialDelay = 1000)
+    @Transactional(rollbackFor = [Exception::class])
+    fun retryIssueCode() {
+        val query = OrderQuery()
+        query.state = OrderStates.Paied
+        query.size = 1000
+        val orders = orderDao.searchForAdmin(query)
+        for(order in orders) {
+            val deliver = SpringAppContext.getBean(Consts.IssueTicketDeliveName) as IssueTicketDeliver
+            deliver.issue(order.orderId)
         }
     }
 }

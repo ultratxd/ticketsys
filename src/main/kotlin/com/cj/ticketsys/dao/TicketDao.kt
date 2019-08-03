@@ -15,7 +15,7 @@ interface TicketDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
-        Result(column = "buy_remark",property = "buyRemark"),
+        Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView")
     )
     fun get(id: Int): Ticket?
@@ -41,10 +41,10 @@ interface TicketDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
-        Result(column = "buy_remark",property = "buyRemark"),
+        Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView")
     )
-    fun gets(sid: Int,cid: Int? = null,frontView:Boolean? = true): List<Ticket>
+    fun gets(sid: Int, cid: Int? = null, frontView: Boolean? = true): List<Ticket>
 
     @Select(
         "<script>select count(DISTINCT(t.id)) from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
@@ -67,7 +67,7 @@ interface TicketDao {
                 "</where>" +
                 "</script>"
     )
-    fun searchCountForAdmin(query:TicketQuery):Long
+    fun searchCountForAdmin(query: TicketQuery): Long
 
     @Select(
         "<script>select DISTINCT(t.id),t.* from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
@@ -97,15 +97,16 @@ interface TicketDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
-        Result(column = "buy_remark",property = "buyRemark"),
+        Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView")
     )
-    fun searchForAdmin(query:TicketQuery):List<Ticket>
+    fun searchForAdmin(query: TicketQuery): List<Ticket>
 
     @Insert(
         "insert into ticket(cloud_id,`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties) " +
                 "values(#{cloudId}#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
     )
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insert(ticket: Ticket): Long
 
     @Insert(
@@ -131,12 +132,43 @@ interface TicketDao {
     @Results(
         Result(column = "t", property = "type")
     )
-    fun getTags(ticketId:Int): List<Tag>
+    fun getTags(ticketId: Int): List<Tag>
+
+    @Select(
+        "select * from tags where name=#{name} and t=#{t}"
+    )
+    fun getTagByName(name: String, t: Short): Tag?
+
+    @Insert(
+        "insert into tags(name,t) values(#{name},#{t})"
+    )
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    fun insertTag(tag: Tag): Long
+
+    @Insert(
+        "insert into ticket_tags(tid,tagid) values(#{ticketId},#{tagId})"
+    )
+    fun insertTicketTag(ticketId: Int, tagId: Int): Long
+
+    @Delete(
+        "delete from ticket_tags where tid=#{ticketId}"
+    )
+    fun delTicketTags(ticketId: Int): Long
 
     @Select(
         "select to_tid from ticket_tkts where from_tid=#{ticketId}"
     )
-    fun getRelatedTicket(ticketId:Int): List<Int>
+    fun getRelatedTicket(ticketId: Int): List<Int>
+
+    @Insert(
+        "insert into ticket_tkts(from_tid,to_tid) values(#{ticketId},#{toTicketId})"
+    )
+    fun insertRelatedTicket(ticketId: Int, toTicketId: Int): Long
+
+    @Delete(
+        "delete from ticket_tkts where from_tid=#{ticketId}"
+    )
+    fun delRelatedTickets(ticketId: Int)
 
     @Select(
         "select * from tags tg where tg.t=2"

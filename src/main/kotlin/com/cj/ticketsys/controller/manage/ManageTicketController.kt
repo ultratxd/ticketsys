@@ -4,18 +4,22 @@ import com.cj.ticketsys.controller.BaseController
 import com.cj.ticketsys.controller.dto.RESULT_FAIL
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.controller.dto.ResultT
-import com.cj.ticketsys.controller.dto.TicketPriceDto
+import com.cj.ticketsys.controller.manage.dto.MCategoryDto
 import com.cj.ticketsys.controller.manage.dto.MTicketDto
 import com.cj.ticketsys.controller.manage.dto.MTicketPriceDto
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.dao.TicketQuery
-import com.cj.ticketsys.entities.PagedList
-import com.cj.ticketsys.entities.Ticket
-import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.dao.TicketUseDateDao
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.TicketSvc
+import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import java.lang.Exception
+
 
 @RestController
 @RequestMapping("/ota/v1/manage/ticket")
@@ -23,6 +27,12 @@ class ManageTicketController : BaseController() {
 
     @Autowired
     private lateinit var ticketDao: TicketDao
+
+    @Autowired
+    private lateinit var ticketSvc: TicketSvc
+
+    @Autowired
+    private lateinit var userDateDao: TicketUseDateDao
 
     @Autowired
     private lateinit var ticketPriceDao: TicketPriceDao
@@ -101,7 +111,7 @@ class ManageTicketController : BaseController() {
     @GetMapping("prices/{ticketId}")
     fun getPrices(
         @PathVariable("ticketId", required = false) id: Int
-    ) : ResultT<List<MTicketPriceDto>> {
+    ): ResultT<List<MTicketPriceDto>> {
         if (id <= 0) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
@@ -112,5 +122,284 @@ class ManageTicketController : BaseController() {
             dtos.add(dto)
         }
         return ResultT(RESULT_SUCCESS, "ok", dtos)
+    }
+
+    @GetMapping("categories")
+    fun getTicketCategories(): ResultT<List<MCategoryDto>> {
+        val categories = ticketDao.getCategories()
+        val dtos = ArrayList<MCategoryDto>()
+        for (category in categories) {
+            dtos.add(MCategoryDto(category.id, category.name))
+        }
+        return ResultT(RESULT_SUCCESS, "ok", dtos)
+    }
+
+    @PostMapping("")
+    fun createTicket(
+        @RequestParam("cloud_id", required = false) cloudId: String?,
+        @RequestParam("name", required = false) name: String?,
+        @RequestParam("per_nums", required = false) perNums: Int?,
+        @RequestParam("enter_remark", required = false) enterRemark: String?,
+        @RequestParam("buy_remark", required = false) buyRemark: String?,
+        @RequestParam("stocks", required = false) stocks: Int?,
+        @RequestParam("front_view", required = false) frontView: Boolean?,
+        @RequestParam("cid", required = false) cid: Int?,
+        @RequestParam("icon_url", required = false) iconUrl: String?,
+        @RequestParam("tags", required = false) tags: String?,
+        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?
+    ): com.cj.ticketsys.controller.dto.Result {
+        if (Strings.isNullOrEmpty(cloudId)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
+        }
+        if (Strings.isNullOrEmpty(name)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
+        }
+        if (perNums == null || perNums <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:per_nums")
+        }
+        if (stocks == null || stocks <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
+        }
+        if (cid == null || cid <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cid")
+        }
+        val tkt = Ticket()
+        tkt.cloudId = cloudId!!
+        tkt.name = name!!
+        tkt.perNums = perNums
+        tkt.enterRemark = enterRemark ?: ""
+        tkt.buyRemark = buyRemark ?: ""
+        tkt.stocks = stocks
+        tkt.frontView = frontView ?: false
+        tkt.cid = cid
+        tkt.iconUrl = iconUrl ?: ""
+
+        val addTags = tags?.split(",") ?: listOf()
+        val relIds = relTktIds?.split(",")!!.map { a -> a.toInt() } ?: listOf()
+
+        val ok = ticketSvc.createTicket(tkt, addTags, relIds)
+        if (ok) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "创建成功")
+        }
+        return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "创建失败")
+    }
+
+    @PutMapping("{id}")
+    fun updateTicket(
+        @PathVariable("id", required = false) id: Int,
+        @RequestParam("cloud_id", required = false) cloudId: String?,
+        @RequestParam("name", required = false) name: String?,
+        @RequestParam("per_nums", required = false) perNums: Int?,
+        @RequestParam("enter_remark", required = false) enterRemark: String?,
+        @RequestParam("buy_remark", required = false) buyRemark: String?,
+        @RequestParam("stocks", required = false) stocks: Int?,
+        @RequestParam("front_view", required = false) frontView: Boolean?,
+        @RequestParam("cid", required = false) cid: Int?,
+        @RequestParam("icon_url", required = false) iconUrl: String?,
+        @RequestParam("tags", required = false) tags: String?,
+        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?
+    ): com.cj.ticketsys.controller.dto.Result {
+        val tkt = ticketDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
+
+        if (Strings.isNullOrEmpty(cloudId)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
+        }
+        if (Strings.isNullOrEmpty(name)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
+        }
+        if (perNums == null || perNums <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:per_nums")
+        }
+        if (stocks == null || stocks <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
+        }
+        if (cid == null || cid <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cid")
+        }
+
+        tkt.cloudId = cloudId!!
+        tkt.name = name!!
+        tkt.perNums = perNums
+        tkt.enterRemark = enterRemark ?: ""
+        tkt.buyRemark = buyRemark ?: ""
+        tkt.stocks = stocks
+        tkt.frontView = frontView ?: false
+        tkt.cid = cid
+        tkt.iconUrl = iconUrl
+        val addTags = tags?.split(",") ?: listOf()
+        val relIds = relTktIds?.split(",")!!.map { a -> a.toInt() } ?: listOf()
+        val ok = ticketSvc.updateTicket(tkt, addTags, relIds)
+        if (ok) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
+        }
+        return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
+    }
+
+    @PostMapping("price/{id}")
+    fun getPrice(
+        @PathVariable("id", required = false) id: Int
+    ): ResultT<MTicketPriceDto> {
+        if (id <= 0) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val price = ticketPriceDao.get(id) ?: return ResultT(RESULT_FAIL, "票价不存在")
+        return ResultT(RESULT_SUCCESS, "ok", priceTransformer.transform(price))
+    }
+
+
+    @PostMapping("price")
+    fun createPrice(
+        @RequestParam("tid", required = false) tid: Int?,
+        @RequestParam("ud_date", required = false) udDate: String?,
+        @RequestParam("ch_type", required = false) chType: Int?,
+        @RequestParam("name", required = false) name: String?,
+        @RequestParam("price", required = false) price: Double?,
+        @RequestParam("stocks", required = false) stocks: Int?,
+        @RequestParam("stock_limit_type", required = false) stockLimitType: Int?,
+        @RequestParam("state", required = false) state: Int?,
+        @RequestParam("front_view", required = false) frontView: Boolean?,
+        @RequestParam("refund_type", required = false) refundType: Int?,
+        @RequestParam("title", required = false) title: String?,
+        @RequestParam("remark", required = false) remark: String?,
+        @RequestParam("description", required = false) description: String?,
+        @RequestParam("notice_remark", required = false) noticeRemark: String?
+    ): com.cj.ticketsys.controller.dto.Result {
+        if (tid == null || tid <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:tid")
+        }
+        val ticket = ticketDao.get(tid) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
+        if (Strings.isNullOrEmpty(udDate)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate必须任选一个")
+        }
+        if (chType == null || chType <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:ch_type")
+        }
+        if (Strings.isNullOrEmpty(name)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
+        }
+        if (price == null || price <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
+        }
+        if (stocks == null || stocks <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
+        }
+        if (state == null || state <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
+        }
+
+        val tp = TicketPrice()
+        tp.tid = tid
+        tp.name = name!!
+        tp.channelType = ChannelTypes.prase(chType)
+        tp.price = price
+        tp.stocks = stocks
+        tp.stockLimitType = TicketStockLimitTypes.All
+        tp.state = TicketStates.prase(state)
+        tp.frontView = frontView ?: false
+        tp.refundType = RefundTypes.NoAllow
+        tp.title = title ?: ""
+        tp.remark = remark ?: ""
+        tp.description = description ?: ""
+        tp.noticeRemark = noticeRemark ?: ""
+
+        val useDate: TicketUseDate
+        try {
+            val objectMapper = ObjectMapper()
+            val udr = objectMapper.readValue(udDate, UseDateRequest::class.java)
+            useDate = TicketUseDate()
+            useDate.name = udr.name ?: ""
+            useDate.remark = udr.remark ?: ""
+            useDate.workDay = udr.workDay
+            useDate.weekendDay = udr.weekendDay
+            useDate.legalDay = udr.legalDay
+            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString() else ""
+            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString() else ""
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")
+        }
+        val ok = ticketSvc.createPrice(tp, useDate)
+        if (ok) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "添加成功")
+        }
+        return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "添加失败")
+    }
+
+    @PutMapping("price")
+    fun updatePrice(
+        @RequestParam("id", required = false) id: Int?,
+        @RequestParam("ud_date", required = false) udDate: String?,
+        @RequestParam("ch_type", required = false) chType: Int?,
+        @RequestParam("name", required = false) name: String?,
+        @RequestParam("price", required = false) price: Double?,
+        @RequestParam("stocks", required = false) stocks: Int?,
+        @RequestParam("stock_limit_type", required = false) stockLimitType: Int?,
+        @RequestParam("state", required = false) state: Int?,
+        @RequestParam("front_view", required = false) frontView: Boolean?,
+        @RequestParam("refund_type", required = false) refundType: Int?,
+        @RequestParam("title", required = false) title: String?,
+        @RequestParam("remark", required = false) remark: String?,
+        @RequestParam("description", required = false) description: String?,
+        @RequestParam("notice_remark", required = false) noticeRemark: String?
+    ): com.cj.ticketsys.controller.dto.Result {
+        if (id == null || id <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:id")
+        }
+        val tp = ticketPriceDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票价不存在")
+        if (Strings.isNullOrEmpty(udDate)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate必须任选一个")
+        }
+        if (chType == null || chType <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:ch_type")
+        }
+        if (Strings.isNullOrEmpty(name)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
+        }
+        if (price == null || price <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
+        }
+        if (stocks == null || stocks <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
+        }
+        if (stocks != 0 && stocks < tp.solds) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:库存不能小于已销售数量")
+        }
+        if (state == null || state <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
+        }
+        tp.name = name!!
+        tp.channelType = ChannelTypes.prase(chType)
+        tp.price = price
+        tp.stocks = stocks
+        tp.stockLimitType = TicketStockLimitTypes.All
+        tp.state = TicketStates.prase(state)
+        tp.frontView = frontView ?: false
+        tp.refundType = RefundTypes.NoAllow
+        tp.title = title ?: ""
+        tp.remark = remark ?: ""
+        tp.description = description ?: ""
+        tp.noticeRemark = noticeRemark ?: ""
+
+        val useDate: TicketUseDate
+        try {
+            val objectMapper = ObjectMapper()
+            val udr = objectMapper.readValue(udDate, UseDateRequest::class.java)
+            useDate = TicketUseDate()
+            useDate.name = udr.name ?: ""
+            useDate.remark = udr.remark ?: ""
+            useDate.workDay = udr.workDay
+            useDate.weekendDay = udr.weekendDay
+            useDate.legalDay = udr.legalDay
+            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString() else ""
+            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString() else ""
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")
+        }
+        val ok = ticketSvc.updatePrice(tp, useDate)
+        if (ok) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
+        }
+        return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
     }
 }

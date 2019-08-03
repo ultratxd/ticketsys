@@ -51,3 +51,8 @@ spring:
     host: 172.28.3.45
     username: test
     password: test
+
+
+weedfs:
+  host: 172.28.3.45
+  port: 9333
