@@ -12,7 +12,7 @@ class UseDateRequest {
     @JsonProperty("legal_day")
     var legalDay:Boolean = false
     @JsonProperty("custom_dates")
-    var customDates:List<String>? = null
+    var customDates:List<Int>? = null
     @JsonProperty("not_dates")
-    var notDates:List<String>? = null
+    var notDates:List<Int>? = null
 }

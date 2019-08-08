@@ -16,7 +16,8 @@ interface TicketDao {
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
-        Result(column = "front_view", property = "frontView")
+        Result(column = "front_view", property = "frontView"),
+        Result(column = "pernums", property = "perNums")
     )
     fun get(id: Int): Ticket?
 
@@ -42,7 +43,8 @@ interface TicketDao {
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
-        Result(column = "front_view", property = "frontView")
+        Result(column = "front_view", property = "frontView"),
+        Result(column = "pernums", property = "perNums")
     )
     fun gets(sid: Int, cid: Int? = null, frontView: Boolean? = true): List<Ticket>
 
@@ -98,13 +100,14 @@ interface TicketDao {
         Result(column = "refund_type", property = "refundType"),
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
-        Result(column = "front_view", property = "frontView")
+        Result(column = "front_view", property = "frontView"),
+        Result(column = "pernums", property = "perNums")
     )
     fun searchForAdmin(query: TicketQuery): List<Ticket>
 
     @Insert(
         "insert into ticket(cloud_id,`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties) " +
-                "values(#{cloudId}#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
+                "values(#{cloudId},#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
     )
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insert(ticket: Ticket): Long
@@ -135,12 +138,12 @@ interface TicketDao {
     fun getTags(ticketId: Int): List<Tag>
 
     @Select(
-        "select * from tags where name=#{name} and t=#{t}"
+        "select * from tags where name=#{name} and t=#{type}"
     )
-    fun getTagByName(name: String, t: Short): Tag?
+    fun getTagByName(name: String, type: Short): Tag?
 
     @Insert(
-        "insert into tags(name,t) values(#{name},#{t})"
+        "insert into tags(name,t) values(#{name},#{type})"
     )
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertTag(tag: Tag): Long

@@ -101,6 +101,8 @@ class TicketSvcImpl : TicketSvc {
                 if (eTag.id > 0) {
                     addTags.add(eTag.id)
                 }
+            } else {
+                addTags.add(eTag.id)
             }
         }
         val c = ticketDao.insert(tkt)
@@ -168,7 +170,7 @@ class TicketSvcImpl : TicketSvc {
         if (c > 0) {
             price.useDateId = uDate.id
             val tc = ticketPriceDao.insert(price)
-            if(tc > 0) {
+            if (tc > 0) {
                 return true
             }
         }
@@ -182,7 +184,7 @@ class TicketSvcImpl : TicketSvc {
         if (c > 0) {
             price.useDateId = uDate.id
             val tc = ticketPriceDao.update(price)
-            if(tc > 0) {
+            if (tc > 0) {
                 return true
             }
         }

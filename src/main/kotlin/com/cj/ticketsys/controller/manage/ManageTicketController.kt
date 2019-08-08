@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.lang.Exception
+import javax.servlet.http.HttpServletRequest
 
 
 @RestController
@@ -174,8 +175,9 @@ class ManageTicketController : BaseController() {
         tkt.cid = cid
         tkt.iconUrl = iconUrl ?: ""
 
-        val addTags = tags?.split(",") ?: listOf()
-        val relIds = relTktIds?.split(",")!!.map { a -> a.toInt() } ?: listOf()
+        val addTags = tags?.split(",") ?: emptyList()
+        val tmpRids = relTktIds?.split(",")
+        val relIds = tmpRids?.map { a -> a.toInt() } ?: emptyList()
 
         val ok = ticketSvc.createTicket(tkt, addTags, relIds)
         if (ok) {
@@ -226,8 +228,9 @@ class ManageTicketController : BaseController() {
         tkt.frontView = frontView ?: false
         tkt.cid = cid
         tkt.iconUrl = iconUrl
-        val addTags = tags?.split(",") ?: listOf()
-        val relIds = relTktIds?.split(",")!!.map { a -> a.toInt() } ?: listOf()
+        val addTags = tags?.split(",") ?: emptyList()
+        val tmpRids = relTktIds?.split(",")
+        val relIds = tmpRids?.map { a -> a.toInt() } ?: emptyList()
         val ok = ticketSvc.updateTicket(tkt, addTags, relIds)
         if (ok) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
@@ -235,7 +238,7 @@ class ManageTicketController : BaseController() {
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
     }
 
-    @PostMapping("price/{id}")
+    @GetMapping("price/{id}")
     fun getPrice(
         @PathVariable("id", required = false) id: Int
     ): ResultT<MTicketPriceDto> {
@@ -262,14 +265,15 @@ class ManageTicketController : BaseController() {
         @RequestParam("title", required = false) title: String?,
         @RequestParam("remark", required = false) remark: String?,
         @RequestParam("description", required = false) description: String?,
-        @RequestParam("notice_remark", required = false) noticeRemark: String?
+        @RequestParam("notice_remark", required = false) noticeRemark: String?,
+        req:HttpServletRequest
     ): com.cj.ticketsys.controller.dto.Result {
         if (tid == null || tid <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:tid")
         }
         val ticket = ticketDao.get(tid) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
         if (Strings.isNullOrEmpty(udDate)) {
-            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate必须任选一个")
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate不能为空")
         }
         if (chType == null || chType <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:ch_type")
@@ -285,6 +289,11 @@ class ManageTicketController : BaseController() {
         }
         if (state == null || state <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
+        }
+
+        var prices = ticketPriceDao.gets(tid)
+        if(prices.any { a->a.channelType.value == chType.toShort() }) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "渠道已存在价格")
         }
 
         val tp = TicketPrice()
@@ -347,7 +356,7 @@ class ManageTicketController : BaseController() {
         }
         val tp = ticketPriceDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票价不存在")
         if (Strings.isNullOrEmpty(udDate)) {
-            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate必须任选一个")
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:udDate不能为空")
         }
         if (chType == null || chType <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:ch_type")

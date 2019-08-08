@@ -13,7 +13,9 @@ open class TicketUseDateDto {
     @JsonProperty("legal_day")
     var legalDay:Boolean = false
     @JsonProperty("custom_dates")
-    var customDates:String? = null
+    var customDates:List<Int> = ArrayList()
     @JsonProperty("validity")
     var validity:Int = 0
+    @JsonProperty("not_dates")
+    var notDates:List<Int> = ArrayList()
 }

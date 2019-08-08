@@ -33,12 +33,12 @@ interface TicketPriceDao {
 
     @Insert(
         "insert into ticket_price(tid,usedate_id,channel_type,`name`,price,create_time,stocks,stock_limit_type,state,front_view,refund_type,properties) " +
-                "values(#{tid},#{useDateId},#{channelType},#{perNums},#{name},#{price},#{createTime},#{stocks},#{stockLimitType},#{state},#{frontView},#{refundType},#{properties})"
+                "values(#{tid},#{useDateId},#{channelType},#{name},#{price},#{createTime},#{stocks},#{stockLimitType},#{state},#{frontView},#{refundType},#{properties})"
     )
     fun insert(price: TicketPrice): Long
 
     @Update(
-        "update ticket_price set tid=#{tid},usedate_id=#{useDateId},channel_type=#{channelType},pernums=#{perNums},`name`=#{name},stocks=#{stocks},stock_limit_type=#{stockLimitType},state=#{state},front_view=#{frontView},refund_type=#{refundType},properties=#{properties} " +
+        "update ticket_price set tid=#{tid},usedate_id=#{useDateId},channel_type=#{channelType},`name`=#{name},stocks=#{stocks},stock_limit_type=#{stockLimitType},state=#{state},front_view=#{frontView},refund_type=#{refundType},properties=#{properties} " +
                 "where id=#{id}"
     )
     fun update(ticket: TicketPrice): Long
