@@ -31,6 +31,10 @@
                      javaType="com.cj.ticketsys.entities.TicketCodeStates"/>
         <typeHandler handler="com.cj.ticketsys.entities.EnumTypeHandler"
                      javaType="com.cj.ticketsys.entities.OrderTicketCodeProviders"/>
+        <typeHandler handler="com.cj.ticketsys.entities.EnumTypeHandler"
+                     javaType="com.cj.ticketsys.entities.BuyTypes"/>
+        <typeHandler handler="com.cj.ticketsys.entities.EnumTypeHandler"
+                     javaType="com.cj.ticketsys.entities.PriceDiscountTypes"/>
     </typeHandlers>
     <!--<plugins>-->
     <!--<plugin interceptor="com.jhh.pay.center.cfg.tablesplit.TableSplitInterceptor">-->

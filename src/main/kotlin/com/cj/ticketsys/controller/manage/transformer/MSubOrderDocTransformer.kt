@@ -5,6 +5,7 @@ import com.cj.ticketsys.controller.dto.TicketPriceSnapshotDto
 import com.cj.ticketsys.controller.dto.TicketSnapshotDto
 import com.cj.ticketsys.controller.dto.TicketUseDayTransformer
 import com.cj.ticketsys.controller.manage.dto.MSubOrderDto
+import com.cj.ticketsys.dao.TicketCategories
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.entities.SubOrder
 import com.cj.ticketsys.svc.DocTransformer
@@ -46,7 +47,8 @@ class MSubOrderDocTransformer : DocTransformer<SubOrder, MSubOrderDto> {
         dto.userMobile = data.uMobile
         dto.userName = data.uName
         dto.cid = data.cid
-        dto.categoryName = ticketDao.getCategories().find { a->a.id == dto.cid }?.name
+        dto.categoryName = TicketCategories.getName(data.cid)
+        dto.priceDiscountType = data.priceDiscountType.value
 
         try {
             val ticket = JSON.parseObject(data.snapshot, TicketSnapshot::class.java)

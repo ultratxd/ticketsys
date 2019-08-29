@@ -32,6 +32,7 @@ public abstract class PropertyEntity implements Serializable{
         synchronized (this) {
             if (map.containsKey(name)) {
                 map.replace(name, value);
+                refreshProperties();
                 return;
             }
             map.put(name, value);

@@ -8,8 +8,8 @@ import java.util.*
 @Mapper
 interface SubOrderDao {
     @Insert(
-        "insert into sub_orders(order_id,create_time,pay_time,pay_no,refund_time,refund_no,ch_id,ch_uid,uname,card_type,ucard,umobile,scenic_id,scenic_sid,ticket_id,ticket_pid,unit_price,total_price,nums,pernums,state,use_date,last_use_date,snapshot,cid,properties) " +
-                "values(#{orderId},#{createTime},#{payTime},#{payNo},#{refundTime},#{refundNo},#{channelId},#{channelUid},#{uName},#{cardType},#{uCard},#{uMobile},#{scenicId},#{scenicSid},#{ticketId},#{ticketPid},#{unitPrice},#{totalPrice},#{nums},#{pernums},#{state},#{useDate},#{lastUseDate},#{snapshot},#{cid},#{properties})"
+        "insert into sub_orders(order_id,create_time,pay_time,pay_no,refund_time,refund_no,ch_id,ch_uid,uname,card_type,ucard,umobile,scenic_id,scenic_sid,ticket_id,ticket_pid,unit_price,total_price,nums,pernums,state,use_date,last_use_date,snapshot,cid,properties,price_discount_type) " +
+                "values(#{orderId},#{createTime},#{payTime},#{payNo},#{refundTime},#{refundNo},#{channelId},#{channelUid},#{uName},#{cardType},#{uCard},#{uMobile},#{scenicId},#{scenicSid},#{ticketId},#{ticketPid},#{unitPrice},#{totalPrice},#{nums},#{pernums},#{state},#{useDate},#{lastUseDate},#{snapshot},#{cid},#{properties},#{priceDiscountType})"
     )
     fun insert(order: SubOrder): Long
 
@@ -31,7 +31,7 @@ interface SubOrderDao {
     @Delete(
         "delete from sub_orders where order_id=#{orderNo}"
     )
-    fun delete(orderNo:String): Long
+    fun delete(orderNo: String): Long
 
     @Update(
         "<script>update sub_orders set state=#{state} " +
@@ -74,7 +74,8 @@ interface SubOrderDao {
         Result(column = "uname", property = "uName"),
         Result(column = "card_type", property = "cardType"),
         Result(column = "ucard", property = "uCard"),
-        Result(column = "umobile", property = "uMobile")
+        Result(column = "umobile", property = "uMobile"),
+        Result(column = "price_discount_type", property = "priceDiscountType")
     )
     fun get(id: Int): SubOrder?
 
@@ -102,7 +103,13 @@ interface SubOrderDao {
         Result(column = "uname", property = "uName"),
         Result(column = "card_type", property = "cardType"),
         Result(column = "ucard", property = "uCard"),
-        Result(column = "umobile", property = "uMobile")
+        Result(column = "umobile", property = "uMobile"),
+        Result(column = "price_discount_type", property = "priceDiscountType")
     )
     fun gets(orderNo: String): List<SubOrder>
+
+    @Select(
+        "select count(0) from sub_orders where ucard=#{idCard} and ticket_id=#{tid}"
+    )
+    fun idCardAndTicketCount(idCard: String, tid: Int): Long
 }

@@ -30,7 +30,7 @@ class TicketPriceBinder : PriceBinder {
     private lateinit var ticketDao: TicketDao
 
     override fun getPrices(ticketId: Int, channelType: ChannelTypes, date: Date): Collection<TicketPrice> {
-        val ticket = ticketDao.get(ticketId)!!
+        //val ticket = ticketDao.get(ticketId)!!
         val prices = ticketPriceDao.gets(ticketId)
         if (prices.isEmpty()) {
             return Collections.emptyList()
@@ -61,18 +61,27 @@ class TicketPriceBinder : PriceBinder {
             when (dateType) {
                 DateTypes.WorkDay -> {
                     if (useDate.workDay) {
+                        if(useDate.workPrice != null) {
+                            p.price = useDate.workPrice!!
+                        }
                         usePrices.add(p)
                         added = true
                     }
                 }
                 DateTypes.WeekendDay -> {
                     if (useDate.weekendDay) {
+                        if(useDate.weekendPrice != null) {
+                            p.price = useDate.weekendPrice!!
+                        }
                         usePrices.add(p)
                         added = true
                     }
                 }
                 DateTypes.LegalDay -> {
                     if (useDate.legalDay) {
+                        if(useDate.legalPrice != null) {
+                            p.price = useDate.legalPrice!!
+                        }
                         usePrices.add(p)
                         added = true
                     }

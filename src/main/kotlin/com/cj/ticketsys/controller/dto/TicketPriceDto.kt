@@ -12,6 +12,8 @@ open class TicketPriceDto(@JsonProperty("id") val id: Int) {
     var channelType: Short? = null
     var name: String = ""
     var price: Double = 0.0
+    @JsonProperty("original_price")
+    var originalPrice:Double = 0.0
     var stocks: Int = 0
     @JsonProperty("sold_count")
     var soldCount: Int = 0

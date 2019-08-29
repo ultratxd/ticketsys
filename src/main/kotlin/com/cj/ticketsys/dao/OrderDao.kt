@@ -9,8 +9,8 @@ import java.util.*
 interface OrderDao {
 
     @Insert(
-        "insert into orders(order_id,create_time,pay_time,pay_no,refund_time,refund_no,price,childs,state,ip,ch_id,ch_uid,properties) " +
-                "values(#{orderId},#{createTime},#{payTime},#{payNo},#{refundTime},#{refundNo},#{price},#{childs},#{state},#{ip},#{channelId},#{channelUid},#{properties})"
+        "insert into orders(order_id,create_time,pay_time,pay_no,refund_time,refund_no,price,childs,state,ip,ch_id,ch_uid,buy_type,properties) " +
+                "values(#{orderId},#{createTime},#{payTime},#{payNo},#{refundTime},#{refundNo},#{price},#{childs},#{state},#{ip},#{channelId},#{channelUid},#{buyType},#{properties})"
     )
     fun insert(order: Order): Long
 
@@ -35,12 +35,16 @@ interface OrderDao {
     fun delete(orderNo: String): Long
 
     @Select(
-        "select count(0) from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0"
+        "<script>select count(0) from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0 " +
+                "<if test=\"state !=null\">and state=#{state}</if> " +
+                "</script>"
     )
-    fun getsByUidCount(uid: String, partnerId: String): Long
+    fun getsByUidCount(uid: String, partnerId: String, state: OrderStates?): Long
 
     @Select(
-        "<script>select * from orders where ch_uid=#{uid} and ch_id=#{partnerId} <if test=\"state !=null\">and state=#{state}</if> and deleted=0 order by create_time desc limit #{offset},#{size}</script>"
+        "<script>select * from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0" +
+                "<if test=\"state !=null\">and state=#{state}</if> " +
+                " order by create_time desc limit #{offset},#{size}</script>"
     )
     fun getsByUid(uid: String, partnerId: String, state: OrderStates?, offset: Int = 0, size: Int = 20): List<Order>
 
@@ -55,7 +59,8 @@ interface OrderDao {
         Result(column = "refund_time", property = "refundTime"),
         Result(column = "refund_no", property = "refundNo"),
         Result(column = "ch_id", property = "channelId"),
-        Result(column = "ch_uid", property = "channelUid")
+        Result(column = "ch_uid", property = "channelUid"),
+        Result(column = "buy_type", property = "buyType")
     )
     fun get(id: String): Order?
 
@@ -70,7 +75,8 @@ interface OrderDao {
         Result(column = "refund_time", property = "refundTime"),
         Result(column = "refund_no", property = "refundNo"),
         Result(column = "ch_id", property = "channelId"),
-        Result(column = "ch_uid", property = "channelUid")
+        Result(column = "ch_uid", property = "channelUid"),
+        Result(column = "buy_type", property = "buyType")
     )
     fun getExpiredOrders(expirationDate: Date): List<Order>
 
@@ -79,18 +85,19 @@ interface OrderDao {
         "<script>" +
                 "select count(DISTINCT o.order_id) from orders o join sub_orders so on o.order_id=so.order_id " +
                 "<where>"+
-                "<if test=\"state !=null\">and o.state=#{state}</if>" +
-                "<if test=\"payNo !=null\">and o.pay_no=#{payNo}</if>" +
-                "<if test=\"refundNo !=null\">and o.refund_no=#{refundNo}</if>" +
-                "<if test=\"chId !=null\">and o.ch_id=#{chId}</if>" +
-                "<if test=\"chUid !=null\">and o.ch_uid=#{chUid}</if>" +
-                "<if test=\"userName !=null\">and so.uname=#{userName}</if>" +
-                "<if test=\"userCard !=null\">and so.ucard=#{userCard}</if>" +
-                "<if test=\"userMobile !=null\">and so.umobile=#{userMobile}</if>" +
-                "<if test=\"scenicId !=null\">and so.scenic_id=#{scenicId}</if>" +
-                "<if test=\"scenicSid !=null\">and so.scenic_sid=#{scenicSid}</if>" +
-                "<if test=\"ticketId !=null\">and so.ticket_id=#{ticketId}</if>" +
-                "<if test=\"cid !=null\">and so.cid=#{cid}</if>" +
+                "<if test=\"state !=null\"> and o.state=#{state}</if>" +
+                "<if test=\"payNo !=null\"> and o.pay_no=#{payNo}</if>" +
+                "<if test=\"refundNo !=null\"> and o.refund_no=#{refundNo}</if>" +
+                "<if test=\"chId !=null\"> and o.ch_id=#{chId}</if>" +
+                "<if test=\"chUid !=null\"> and o.ch_uid=#{chUid}</if>" +
+                "<if test=\"userName !=null\"> and so.uname=#{userName}</if>" +
+                "<if test=\"userCard !=null\"> and so.ucard=#{userCard}</if>" +
+                "<if test=\"userMobile !=null\"> and so.umobile=#{userMobile}</if>" +
+                "<if test=\"scenicId !=null\"> and so.scenic_id=#{scenicId}</if>" +
+                "<if test=\"scenicSid !=null\"> and so.scenic_sid=#{scenicSid}</if>" +
+                "<if test=\"ticketId !=null\"> and so.ticket_id=#{ticketId}</if>" +
+                "<if test=\"cid !=null\"> and so.cid=#{cid}</if>" +
+                "<if test=\"buyType !=null\"> and o.buy_type=#{buyType}</if>" +
                 "</where>" +
         "</script>"
     )
@@ -100,18 +107,19 @@ interface OrderDao {
         "<script>" +
                 "select DISTINCT o.order_id,o.* from orders o join sub_orders so on o.order_id=so.order_id " +
                 "<where>"+
-                "<if test=\"state !=null\">and o.state=#{state}</if>" +
-                "<if test=\"payNo !=null\">and o.pay_no=#{payNo}</if>" +
-                "<if test=\"refundNo !=null\">and o.refund_no=#{refundNo}</if>" +
-                "<if test=\"chId !=null\">and o.ch_id=#{chId}</if>" +
-                "<if test=\"chUid !=null\">and o.ch_uid=#{chUid}</if>" +
-                "<if test=\"userName !=null\">and so.uname=#{userName}</if>" +
-                "<if test=\"userCard !=null\">and so.ucard=#{userCard}</if>" +
-                "<if test=\"userMobile !=null\">and so.umobile=#{userMobile}</if>" +
-                "<if test=\"scenicId !=null\">and so.scenic_id=#{scenicId}</if>" +
-                "<if test=\"scenicSid !=null\">and so.scenic_sid=#{scenicSid}</if>" +
-                "<if test=\"ticketId !=null\">and so.ticket_id=#{ticketId}</if>" +
-                "<if test=\"cid !=null\">and so.cid=#{cid}</if>" +
+                "<if test=\"state !=null\"> and o.state=#{state}</if>" +
+                "<if test=\"payNo !=null\"> and o.pay_no=#{payNo}</if>" +
+                "<if test=\"refundNo !=null\"> and o.refund_no=#{refundNo}</if>" +
+                "<if test=\"chId !=null\"> and o.ch_id=#{chId}</if>" +
+                "<if test=\"chUid !=null\"> and o.ch_uid=#{chUid}</if>" +
+                "<if test=\"userName !=null\"> and so.uname=#{userName}</if>" +
+                "<if test=\"userCard !=null\"> and so.ucard=#{userCard}</if>" +
+                "<if test=\"userMobile !=null\"> and so.umobile=#{userMobile}</if>" +
+                "<if test=\"scenicId !=null\"> and so.scenic_id=#{scenicId}</if>" +
+                "<if test=\"scenicSid !=null\"> and so.scenic_sid=#{scenicSid}</if>" +
+                "<if test=\"ticketId !=null\"> and so.ticket_id=#{ticketId}</if>" +
+                "<if test=\"cid !=null\"> and so.cid=#{cid}</if>" +
+                "<if test=\"buyType !=null\"> and o.buy_type=#{buyType}</if>" +
                 "</where>" +
                 " order by o.create_time desc" +
                 " limit #{offset},#{size}" +
@@ -125,7 +133,8 @@ interface OrderDao {
         Result(column = "refund_time", property = "refundTime"),
         Result(column = "refund_no", property = "refundNo"),
         Result(column = "ch_id", property = "channelId"),
-        Result(column = "ch_uid", property = "channelUid")
+        Result(column = "ch_uid", property = "channelUid"),
+        Result(column = "buy_type", property = "buyType")
     )
     fun searchForAdmin(query: OrderQuery):List<Order>
 }

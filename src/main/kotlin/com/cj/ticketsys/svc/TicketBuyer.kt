@@ -1,5 +1,6 @@
 package com.cj.ticketsys.svc
 
+import com.cj.ticketsys.entities.BuyTypes
 import com.cj.ticketsys.entities.CardTypes
 import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.Partner
@@ -12,8 +13,9 @@ interface TicketBuyer {
 class BuyTicketOrder {
     var partner: Partner? = null
     var channelUid: String = ""
-    var buyerIp:String = ""
+    var buyerIp: String = ""
     var scenicSpotId = 0
+    var buyType: BuyTypes = BuyTypes.Online
     var buyTickets: MutableList<BuyTicketInfo> = ArrayList()
 }
 
@@ -21,8 +23,8 @@ class BuyTicketInfo {
     var ticketPriceId: Int = 0
     var ticketNums: Int = 0
     var date: Int = 0
-    var userName:String = ""
-    var cardType:CardTypes = CardTypes.IDCard
+    var userName: String = ""
+    var cardType: CardTypes = CardTypes.IDCard
     var userCard: String = ""
     var userMobile: String = ""
 }

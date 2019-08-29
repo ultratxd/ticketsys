@@ -6,6 +6,7 @@ import com.cj.ticketsys.dao.PartnerDao
 import com.cj.ticketsys.dao.RecommendDao
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
+import com.cj.ticketsys.entities.BuyTypes
 import com.cj.ticketsys.entities.CardTypes
 import com.cj.ticketsys.entities.Ticket
 import com.cj.ticketsys.entities.TicketPrice
@@ -129,7 +130,7 @@ class TicketController : BaseController() {
         for (rTid in relatedTickets) {
             val relTk = ticketDao.get(rTid)
             if (relTk != null) {
-                if(!relTk.frontView) {
+                if (!relTk.frontView) {
                     continue
                 }
                 priceBinder.bind(relTk, partner.channelType, Utils.intToDate(date))
@@ -168,7 +169,7 @@ class TicketController : BaseController() {
         }
 
         val partner = partnerDao.get(partnerId!!) ?: return ResultT(RESULT_FAIL, "商户不存在")
-        val tickets = ticketDao.gets(sid, cid)
+        val tickets = ticketDao.gets(sid, cid, partner.channelType)
         val dtos = ArrayList<TicketDto>()
         for (ticket in tickets) {
             priceBinder.bind(ticket, partner.channelType, Utils.intToDate(date))
@@ -184,7 +185,7 @@ class TicketController : BaseController() {
         @RequestParam("date", required = false) date: Int?,
         @RequestParam("partner_id", required = false) partnerId: String?
     ): ResultT<List<TicketDto>> {
-        if(nums == null || Strings.isNullOrEmpty(partnerId)) {
+        if (nums == null || Strings.isNullOrEmpty(partnerId)) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
         var buyDate = SimpleDateFormat("yyyyMMdd").format(Date()).toInt()
@@ -193,9 +194,9 @@ class TicketController : BaseController() {
         }
         val rems = recommendDao.gets(nums, 1)
         val tickets = ArrayList<Ticket>()
-        for(r in rems) {
+        for (r in rems) {
             val ticket = ticketDao.get(r.refId)
-            if(ticket != null) {
+            if (ticket != null) {
                 tickets.add(ticket)
             }
         }
@@ -221,6 +222,9 @@ class TicketController : BaseController() {
         if (buy.BuyTickets.isEmpty()) {
             return ResultT(RESULT_FAIL, "未购买商品")
         }
+        if (!BuyTypes.values().any { s -> s.value == buy.buyType }) {
+            return ResultT(RESULT_FAIL, "购买类型不存在")
+        }
         for (buyTicket in buy.BuyTickets) {
             if (buyTicket.date.toString().length != 8) {
                 return ResultT(RESULT_FAIL, "日期格式错误")
@@ -238,6 +242,7 @@ class TicketController : BaseController() {
         }
         buyTicket.scenicSpotId = buy.scenicSid
         buyTicket.channelUid = buy.channelUid
+        buyTicket.buyType = BuyTypes.prase(buy.buyType)
         for (ticket in buy.BuyTickets) {
             if (ticket.ticketNums <= 0) {
                 return ResultT(RESULT_FAIL, "购买数量错误")
@@ -251,7 +256,7 @@ class TicketController : BaseController() {
             if (Strings.isNullOrEmpty(ticket.userMobile)) {
                 return ResultT(RESULT_FAIL, "手机号未填写")
             }
-            if(ticket.cardType <=0 ) {
+            if (ticket.cardType <= 0) {
                 return ResultT(RESULT_FAIL, "证件类型错误")
             }
             val buyTicketInfo = BuyTicketInfo()

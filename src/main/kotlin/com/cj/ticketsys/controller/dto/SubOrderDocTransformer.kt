@@ -1,10 +1,7 @@
 package com.cj.ticketsys.controller.dto
 
-import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.entities.SubOrder
-import com.cj.ticketsys.entities.Ticket
 import com.cj.ticketsys.svc.DocTransformer
-import com.cj.ticketsys.svc.TicketSnapshot
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -12,7 +9,7 @@ import org.springframework.stereotype.Component
 class SubOrderDocTransformer : DocTransformer<SubOrder, SubOrderDto> {
 
     @Autowired
-    private lateinit var ticketUseDayTransformer: TicketUseDayTransformer
+    private lateinit var snapshotTransformer: DocTransformer<String, TicketSnapshotDto>
 
     override fun transform(data: SubOrder): SubOrderDto? {
         val dto = SubOrderDto(data.id, data.orderId)
@@ -39,39 +36,9 @@ class SubOrderDocTransformer : DocTransformer<SubOrder, SubOrderDto> {
         dto.userMobile = data.uMobile
         dto.userName = data.uName
         dto.cid = data.cid
+        dto.priceDiscountType = data.priceDiscountType.value
 
-        try {
-            val ticket = JSON.parseObject(data.snapshot, TicketSnapshot::class.java)
-            val snapshot = TicketSnapshotDto()
-            snapshot.id = ticket.id
-            snapshot.name = ticket.name
-            snapshot.perNums = ticket.perNums
-            snapshot.iconUrl = ticket.iconUrl
-            snapshot.buyRemark = ticket.buyRemark
-            snapshot.enterRemark = ticket.enterRemark
-            snapshot.tags.addAll(ticket.tags)
-            snapshot.categoryName = ticket.categoryName
-            snapshot.cid = ticket.cid
-            for (tp in ticket.prices) {
-                val ssPrice = TicketPriceSnapshotDto()
-                ssPrice.id = tp.id
-                ssPrice.tid = tp.tid
-                ssPrice.useDate = if(tp.useDate != null) ticketUseDayTransformer.transform(tp.useDate!!) else null
-                ssPrice.channelType = tp.channelType.value
-                ssPrice.name = tp.name
-                ssPrice.price = tp.price
-                ssPrice.refundType = tp.refundType.value
-                ssPrice.title = tp.title
-                ssPrice.noticeRemark = tp.noticeRemark
-                ssPrice.remark = tp.remark
-                ssPrice.description = tp.description
-                snapshot.prices.add(ssPrice)
-            }
-            dto.ticketSnapshot = snapshot
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
+        dto.ticketSnapshot = snapshotTransformer.transform(data.snapshot ?: "")
         return dto
     }
 }

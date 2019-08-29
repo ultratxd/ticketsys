@@ -1,5 +1,6 @@
 package com.cj.ticketsys.dao
 
+import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.Tag
 import com.cj.ticketsys.entities.Ticket
 import org.apache.ibatis.annotations.*
@@ -23,7 +24,7 @@ interface TicketDao {
 
 
     @Select(
-        "<script>select t.* from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
+        "<script>select DISTINCT(t.id) as tid,t.* from ticket t join scenic_of_tickets st on st.ticket_id=t.id join ticket_price tp on tp.tid=t.id" +
                 "<where>" +
                 "<if test='sid != null'>" +
                 " and st.scenic_sid=#{sid} " +
@@ -33,6 +34,9 @@ interface TicketDao {
                 "</if>" +
                 "<if test='frontView != null'>" +
                 " and t.front_view=#{frontView} " +
+                "</if>" +
+                "<if test='channelType != null'>" +
+                " and tp.channel_type=#{channelType} " +
                 "</if>" +
                 "</where>" +
                 "</script>"
@@ -46,10 +50,10 @@ interface TicketDao {
         Result(column = "front_view", property = "frontView"),
         Result(column = "pernums", property = "perNums")
     )
-    fun gets(sid: Int, cid: Int? = null, frontView: Boolean? = true): List<Ticket>
+    fun gets(sid: Int, cid: Int? = null, channelType: ChannelTypes? = null, frontView: Boolean? = true): List<Ticket>
 
     @Select(
-        "<script>select count(DISTINCT(t.id)) from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
+        "<script>select count(DISTINCT(t.id)) from ticket t left join scenic_of_tickets st on st.ticket_id=t.id " +
                 "<where>" +
                 "<if test='sid != null'>" +
                 " and st.scenic_sid=#{sid} " +
@@ -72,7 +76,7 @@ interface TicketDao {
     fun searchCountForAdmin(query: TicketQuery): Long
 
     @Select(
-        "<script>select DISTINCT(t.id),t.* from ticket t join scenic_of_tickets st on st.ticket_id=t.id " +
+        "<script>select DISTINCT(t.id),t.* from ticket t left join scenic_of_tickets st on st.ticket_id=t.id " +
                 "<where>" +
                 "<if test='sid != null'>" +
                 " and st.scenic_sid=#{sid} " +
@@ -113,9 +117,19 @@ interface TicketDao {
     fun insert(ticket: Ticket): Long
 
     @Insert(
-        "insert into scenic_of_tickets(scenic_sid,ticket_id) values(#{sid},#{ticketId})"
+        "insert into scenic_of_tickets(scenic_sid,ticket_id) values(#{scenicSid},#{tktId})"
     )
-    fun insertSpotTicket(sid: Int, ticketId: Int): Long
+    fun insertScenicTicket(scenicSid: Int, tktId: Int): Long
+
+    @Delete(
+        "delete from scenic_of_tickets where ticket_id=#{tktId}"
+    )
+    fun delScenicTickets(tktId: Int): Long
+
+    @Select(
+        "select scenic_sid from scenic_of_tickets where ticket_id=#{tktId}"
+    )
+    fun getTktRelatedSpotIds(tktId: Int): List<Int>
 
     @Update(
         "update ticket set pernums=#{perNums},`name`=#{name},enter_remark=#{enterRemark},buy_remark=#{buyRemark},stocks=#{stocks},state=#{state},front_view=#{frontView},cid=#{cid},properties=#{properties} " +
@@ -173,10 +187,10 @@ interface TicketDao {
     )
     fun delRelatedTickets(ticketId: Int)
 
-    @Select(
-        "select * from tags tg where tg.t=2"
-    )
-    fun getCategories(): List<Tag>
+//    @Select(
+//        "select * from tags tg where tg.t=2"
+//    )
+//    fun getCategories(): List<Tag>
 
 
 }

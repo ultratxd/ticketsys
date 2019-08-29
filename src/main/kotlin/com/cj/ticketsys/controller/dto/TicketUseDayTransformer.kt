@@ -13,8 +13,11 @@ class TicketUseDayTransformer: DocTransformer<TicketUseDate,TicketUseDateDto> {
         dto.name = data.name
         dto.remark = data.remark
         dto.workDay = data.workDay
+        dto.workPrice = data.workPrice
         dto.weekendDay = data.weekendDay
+        dto.weekendPrice = data.weekendPrice
         dto.legalDay = data.legalDay
+        dto.legalPrice = data.legalPrice
         if(!Strings.isNullOrEmpty(data.customDates)) {
             dto.customDates = data.customDates.split(",").map { a->a.toInt() }
         }

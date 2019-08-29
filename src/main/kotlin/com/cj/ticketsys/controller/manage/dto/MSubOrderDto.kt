@@ -1,6 +1,7 @@
 package com.cj.ticketsys.controller.manage.dto
 
 import com.cj.ticketsys.controller.dto.TicketSnapshotDto
+import com.cj.ticketsys.entities.PriceDiscountTypes
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
@@ -47,6 +48,8 @@ class MSubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
     var cid:Int = 0
     @JsonProperty("category_name")
     var categoryName:String? = ""
+    @JsonProperty("price_discount_type")
+    var priceDiscountType:Short = PriceDiscountTypes.Nothing.value
 
     var extra:MutableMap<String,Any> = TreeMap()
 

@@ -1,5 +1,6 @@
 package com.cj.ticketsys.dao
 
+import com.cj.ticketsys.entities.BuyTypes
 import com.cj.ticketsys.entities.OrderStates
 
 open class OrderQuery : BaseQuery(){
@@ -15,4 +16,5 @@ open class OrderQuery : BaseQuery(){
     var scenicSid:Int?= null
     var ticketId:Int? = null
     var cid:Int? = null
+    var buyType:BuyTypes? = null
 }

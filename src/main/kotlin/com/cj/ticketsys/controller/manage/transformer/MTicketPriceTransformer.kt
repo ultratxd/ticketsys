@@ -24,6 +24,7 @@ class MTicketPriceTransformer  : DocTransformer<TicketPrice, MTicketPriceDto> {
         dto.channelType = data.channelType.value
         dto.name = data.name
         dto.price = data.price
+        dto.originalPrice = data.originalPrice ?: 0.0
         dto.stocks = data.stocks
         dto.soldCount = data.solds
         dto.state = data.state.value
@@ -31,13 +32,16 @@ class MTicketPriceTransformer  : DocTransformer<TicketPrice, MTicketPriceDto> {
         dto.title = data.title
         dto.noticeRemark = data.noticeRemark
         dto.remark = data.remark
-        dto.description = dto.description
+        dto.frontView = data.frontView
+        dto.description = data.description
         dto.extra = data.map
         dto.createTime = data.createTime
-        dto.stockLimitType = data.stockLimitType
+        dto.stockLimitType = data.stockLimitType.value
+        dto.customPrices = data.customPrices
+        dto.idCardPrices = data.idCardPrices
 
 
-        val useDate = useDateDao.get(data.id)
+        val useDate = useDateDao.get(data.useDateId)
         if (useDate != null) {
             dto.useDate = useDateTransformer.transform(useDate)!!
         }

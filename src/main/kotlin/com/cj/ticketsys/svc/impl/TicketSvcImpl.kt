@@ -1,5 +1,6 @@
 package com.cj.ticketsys.svc.impl
 
+import com.cj.ticketsys.dao.ScenicSpotDao
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.dao.TicketUseDateDao
@@ -28,6 +29,9 @@ class TicketSvcImpl : TicketSvc {
 
     @Autowired
     private lateinit var ticketDao: TicketDao
+
+    @Autowired
+    private lateinit var scenicSpotDao: ScenicSpotDao
 
     @Autowired
     private lateinit var ticketPriceDao: TicketPriceDao
@@ -89,7 +93,13 @@ class TicketSvcImpl : TicketSvc {
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    override fun createTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean {
+    override fun createTicket(
+        tkt: Ticket,
+        scenicSids: List<Int>,
+        tags: List<String>,
+        relTktIds: List<Int>,
+        vararg args: Any
+    ): Boolean {
         val addTags = ArrayList<Int>()
         for (tag in tags) {
             var eTag = ticketDao.getTagByName(tag, 1)
@@ -123,11 +133,26 @@ class TicketSvcImpl : TicketSvc {
                 }
             }
         }
+        if (scenicSids.any()) {
+            for (sid in scenicSids) {
+                if (ticketDao.insertScenicTicket(sid, tkt.id) == 0L) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+                    return false
+                }
+                scenicSpotDao.updateTicketCount(sid, 1)
+            }
+        }
         return true
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    override fun updateTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean {
+    override fun updateTicket(
+        tkt: Ticket,
+        scenicSids: List<Int>,
+        tags: List<String>,
+        relTktIds: List<Int>,
+        vararg args: Any
+    ): Boolean {
         val addTags = ArrayList<Int>()
         for (tag in tags) {
             var eTag = ticketDao.getTagByName(tag, 1)
@@ -156,6 +181,15 @@ class TicketSvcImpl : TicketSvc {
             ticketDao.delRelatedTickets(tkt.id)
             for (rid in relTktIds) {
                 if (ticketDao.insertRelatedTicket(tkt.id, rid) == 0L) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+                    return false
+                }
+            }
+        }
+        ticketDao.delScenicTickets(tkt.id)
+        if (scenicSids.any()) {
+            for (sid in scenicSids) {
+                if (ticketDao.insertScenicTicket(sid, tkt.id) == 0L) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return false
                 }

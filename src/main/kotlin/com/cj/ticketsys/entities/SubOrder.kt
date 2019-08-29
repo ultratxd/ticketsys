@@ -29,6 +29,7 @@ class SubOrder:PropertyEntity() {
     var lastUseDate:Date? = null
     var snapshot:String? = null
     var cid:Int = 0
+    var priceDiscountType:PriceDiscountTypes = PriceDiscountTypes.Nothing
 
     var issueTicketTime:Date?
         get() = this.getProperty("issue_ticket_time") as Date?

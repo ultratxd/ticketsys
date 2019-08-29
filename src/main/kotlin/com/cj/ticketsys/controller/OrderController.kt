@@ -3,6 +3,7 @@ package com.cj.ticketsys.controller
 import com.cj.ticketsys.cfg.SpringAppContext
 import com.cj.ticketsys.controller.dto.*
 import com.cj.ticketsys.controller.req.BuyRequest
+import com.cj.ticketsys.dao.CardTicketDao
 import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.OrderTicketCodeDao
 import com.cj.ticketsys.dao.SubOrderDao
@@ -32,6 +33,9 @@ class OrderController : BaseController() {
     private lateinit var orderSvc: OrderSvc
 
     @Autowired
+    private lateinit var cardTicketDao: CardTicketDao
+
+    @Autowired
     private lateinit var orderTicketCodeDao: OrderTicketCodeDao
 
     @Autowired
@@ -39,6 +43,9 @@ class OrderController : BaseController() {
 
     @Autowired
     private lateinit var subOrderTransformer: DocTransformer<SubOrder, SubOrderDto>
+
+    @Autowired
+    private lateinit var cardTicketTransformer: DocTransformer<CardTicket, CardTicketDto>
 
     @GetMapping("/{orderNo}")
     fun get(
@@ -93,12 +100,6 @@ class OrderController : BaseController() {
         if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
-        val total = orderDao.getsByUidCount(uid, partnerId!!)
-        var p = 1
-        val size = 20
-        if (page != null && page > 0) {
-            p = page
-        }
         var oState: OrderStates? = null
         if (state != null) {
             if (!OrderStates.values().any { s -> s.value == state }) {
@@ -107,6 +108,12 @@ class OrderController : BaseController() {
             oState = OrderStates.prase(state.toInt())
         }
 
+        val total = orderDao.getsByUidCount(uid, partnerId!!, oState)
+        var p = 1
+        val size = 20
+        if (page != null && page > 0) {
+            p = page
+        }
         val offset = (p - 1) * size
         val list = orderDao.getsByUid(uid, partnerId, oState, offset, size)
         val dtos = ArrayList<OrderDto>()
@@ -116,6 +123,22 @@ class OrderController : BaseController() {
         }
         val pList = PagedList(p, size, total, dtos)
         return ResultT(RESULT_SUCCESS, "ok", pList)
+    }
+
+    @GetMapping("/my/{uid}/cards")
+    fun getMyCardTicket(
+        @PathVariable("uid", required = true) uid: String,
+        @RequestParam("partner_id", required = false) partnerId: String?
+    ): ResultT<List<CardTicketDto>> {
+        if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val cards = cardTicketDao.getsByPartner(uid, partnerId!!)
+        val list = ArrayList<CardTicketDto>()
+        for (card in cards) {
+            list.add(cardTicketTransformer.transform(card)!!)
+        }
+        return ResultT(RESULT_SUCCESS, "ok", list)
     }
 
     @PutMapping("/cancel/{orderNo}")
@@ -172,10 +195,43 @@ class OrderController : BaseController() {
         if (Strings.isNullOrEmpty(code)) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
-        if(provider == null) {
+        if (provider == null) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
-        val tCode = orderTicketCodeDao.getByCode(code!!,OrderTicketCodeProviders.prase(provider)) ?: return ResultT(RESULT_FAIL, "码不存在")
+        val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.prase(provider)) ?: return ResultT(
+            RESULT_FAIL,
+            "码不存在"
+        )
         return ResultT(RESULT_SUCCESS, "ok", tCode.state.value)
+    }
+
+    @GetMapping("/detail/code/{code}")
+    fun codeGetOrder(
+        @PathVariable("code", required = true) code: String?
+    ): ResultT<OrderDto> {
+        if (Strings.isNullOrEmpty(code)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.System)
+            ?: return ResultT(RESULT_FAIL, "编号不存在")
+        val order = orderDao.get(tCode.orderId) ?: return ResultT(RESULT_FAIL, "编号对应的订单不存在")
+        val dto = orderTransformer.transform(order)!!
+        return ResultT(RESULT_SUCCESS, "ok", dto)
+    }
+
+    @GetMapping("/code/verify/{code}")
+    fun codeVerify(
+        @PathVariable("code", required = true) code: String?
+    ): Result {
+        if (Strings.isNullOrEmpty(code)) {
+            return Result(RESULT_FAIL, "参数错误")
+        }
+        val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.System)
+            ?: return Result(RESULT_FAIL, "编号不存在")
+        val ok = orderSvc.completdEnter(tCode.orderId, code, OrderTicketCodeProviders.System)
+        if(ok) {
+            return Result(RESULT_SUCCESS, "核销成功")
+        }
+        return  Result(RESULT_FAIL, "核销失败")
     }
 }

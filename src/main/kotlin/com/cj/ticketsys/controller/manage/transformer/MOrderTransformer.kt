@@ -40,6 +40,7 @@ class MOrderTransformer : DocTransformer<Order, MOrderDto> {
         dto.channelId = data.channelId
         dto.channelUid = data.channelUid
         dto.deleted = data.deleted
+        dto.buyType = data.buyType.value
 
         val subs = subOrderDao.gets(data.orderId)
         val spotDtos = subs.map { a -> subOrderDocTransformer.transform(a)!! }

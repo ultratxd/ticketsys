@@ -49,4 +49,5 @@ class ThirdCallbackController : BaseController() {
     class NoticeResultHead(val res_code: String = "", val res_msg: String = "") {
         var timestamp = System.currentTimeMillis() / 1000
     }
+
 }

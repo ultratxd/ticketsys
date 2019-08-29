@@ -1,5 +1,6 @@
 package com.cj.ticketsys.svc.impl
 
+import com.cj.ticketsys.dao.TicketCategories
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketUseDateDao
 import com.cj.ticketsys.entities.Ticket
@@ -29,8 +30,7 @@ class TicketSnapshotCreator : SnapshotCreator<Ticket, TicketSnapshot> {
         snapshot.stocks = obj.stocks
         snapshot.state = obj.state
         snapshot.cid = obj.cid
-        val category = ticketDao.getCategories().find { a -> a.id == obj.cid }
-        snapshot.categoryName = if (category != null) category.name else ""
+        snapshot.categoryName = TicketCategories.getName(obj.cid)
         snapshot.iconUrl = obj.iconUrl
         val tags = ticketDao.getTags(obj.id)
         snapshot.tags.addAll(tags.map { t -> t.name })

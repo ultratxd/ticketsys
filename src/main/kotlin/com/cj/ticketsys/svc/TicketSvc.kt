@@ -16,9 +16,21 @@ interface TicketSvc {
         channelType: ChannelTypes
     ): Map<Int, Collection<TicketPrice>>
 
-    fun createTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean
+    fun createTicket(
+        tkt: Ticket,
+        scenicSids: List<Int>,
+        tags: List<String>,
+        relTktIds: List<Int>,
+        vararg args: Any
+    ): Boolean
 
-    fun updateTicket(tkt: Ticket, tags: List<String>, relTktIds: List<Int>, vararg args: Any): Boolean
+    fun updateTicket(
+        tkt: Ticket,
+        scenicSids: List<Int>,
+        tags: List<String>,
+        relTktIds: List<Int>,
+        vararg args: Any
+    ): Boolean
 
 
     /**

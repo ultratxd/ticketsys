@@ -7,10 +7,7 @@ import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.controller.manage.dto.MCategoryDto
 import com.cj.ticketsys.controller.manage.dto.MTicketDto
 import com.cj.ticketsys.controller.manage.dto.MTicketPriceDto
-import com.cj.ticketsys.dao.TicketDao
-import com.cj.ticketsys.dao.TicketPriceDao
-import com.cj.ticketsys.dao.TicketQuery
-import com.cj.ticketsys.dao.TicketUseDateDao
+import com.cj.ticketsys.dao.*
 import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.DocTransformer
 import com.cj.ticketsys.svc.TicketSvc
@@ -18,6 +15,8 @@ import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.primitives.Doubles
+import com.google.common.primitives.Ints
 import java.lang.Exception
 import javax.servlet.http.HttpServletRequest
 
@@ -74,12 +73,16 @@ class ManageTicketController : BaseController() {
 
         val query = TicketQuery()
         query.sid = sid
-        query.name = name
+        if (!Strings.isNullOrEmpty(name)) {
+            query.name = name
+        }
         query.state = state
         query.cid = cid
         query.frontView = frontView
         if (size == null || size <= 0) {
             query.size = 20
+        } else {
+            query.size = size
         }
         var tmpPage = 0
         if (page == null || page <= 0) {
@@ -127,16 +130,17 @@ class ManageTicketController : BaseController() {
 
     @GetMapping("categories")
     fun getTicketCategories(): ResultT<List<MCategoryDto>> {
-        val categories = ticketDao.getCategories()
         val dtos = ArrayList<MCategoryDto>()
+        val categories = TicketCategories.values()
         for (category in categories) {
-            dtos.add(MCategoryDto(category.id, category.name))
+            dtos.add(MCategoryDto(category.value, TicketCategories.getName(category.value)))
         }
         return ResultT(RESULT_SUCCESS, "ok", dtos)
     }
 
     @PostMapping("")
     fun createTicket(
+        @RequestParam("scenic_sids", required = false) scenicSids: String?,
         @RequestParam("cloud_id", required = false) cloudId: String?,
         @RequestParam("name", required = false) name: String?,
         @RequestParam("per_nums", required = false) perNums: Int?,
@@ -147,8 +151,12 @@ class ManageTicketController : BaseController() {
         @RequestParam("cid", required = false) cid: Int?,
         @RequestParam("icon_url", required = false) iconUrl: String?,
         @RequestParam("tags", required = false) tags: String?,
-        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?
+        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?,
+        @RequestParam("state", required = false) state: Int?
     ): com.cj.ticketsys.controller.dto.Result {
+        if (Strings.isNullOrEmpty(scenicSids)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
+        }
         if (Strings.isNullOrEmpty(cloudId)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
         }
@@ -161,8 +169,11 @@ class ManageTicketController : BaseController() {
         if (stocks == null || stocks <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
-        if (cid == null || cid <= 0) {
+        if (cid == null || cid <= 0 || !TicketCategories.values().any { a -> a.value == cid }) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cid")
+        }
+        if (state == null || state <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
         val tkt = Ticket()
         tkt.cloudId = cloudId!!
@@ -174,12 +185,22 @@ class ManageTicketController : BaseController() {
         tkt.frontView = frontView ?: false
         tkt.cid = cid
         tkt.iconUrl = iconUrl ?: ""
+        tkt.state = TicketStates.prase(state)
+
+        var relIds: List<Int> = ArrayList()
+        var sids: List<Int> = ArrayList()
 
         val addTags = tags?.split(",") ?: emptyList()
-        val tmpRids = relTktIds?.split(",")
-        val relIds = tmpRids?.map { a -> a.toInt() } ?: emptyList()
+        if (!Strings.isNullOrEmpty(relTktIds)) {
+            val tmpRids = relTktIds?.split(",")
+            relIds = tmpRids!!.map { a -> a.toInt() }
+        }
+        if (!Strings.isNullOrEmpty(scenicSids)) {
+            val tmpSids = scenicSids?.split(',')
+            sids = tmpSids!!.map { a -> a.toInt() }
+        }
 
-        val ok = ticketSvc.createTicket(tkt, addTags, relIds)
+        val ok = ticketSvc.createTicket(tkt, sids, addTags, relIds)
         if (ok) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "创建成功")
         }
@@ -189,6 +210,7 @@ class ManageTicketController : BaseController() {
     @PutMapping("{id}")
     fun updateTicket(
         @PathVariable("id", required = false) id: Int,
+        @RequestParam("scenic_sids", required = false) scenicSids: String?,
         @RequestParam("cloud_id", required = false) cloudId: String?,
         @RequestParam("name", required = false) name: String?,
         @RequestParam("per_nums", required = false) perNums: Int?,
@@ -199,10 +221,13 @@ class ManageTicketController : BaseController() {
         @RequestParam("cid", required = false) cid: Int?,
         @RequestParam("icon_url", required = false) iconUrl: String?,
         @RequestParam("tags", required = false) tags: String?,
-        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?
+        @RequestParam("rel_tkt_ids", required = false) relTktIds: String?,
+        @RequestParam("state", required = false) state: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         val tkt = ticketDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
-
+        if (Strings.isNullOrEmpty(scenicSids)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
+        }
         if (Strings.isNullOrEmpty(cloudId)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
         }
@@ -215,8 +240,11 @@ class ManageTicketController : BaseController() {
         if (stocks == null || stocks <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
-        if (cid == null || cid <= 0) {
+        if (cid == null || cid <= 0 || !TicketCategories.values().any { a -> a.value == cid }) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cid")
+        }
+        if (state == null || state <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
 
         tkt.cloudId = cloudId!!
@@ -228,10 +256,20 @@ class ManageTicketController : BaseController() {
         tkt.frontView = frontView ?: false
         tkt.cid = cid
         tkt.iconUrl = iconUrl
+        tkt.state = TicketStates.prase(state)
+        var relIds: List<Int> = ArrayList()
+        var sids: List<Int> = ArrayList()
+
         val addTags = tags?.split(",") ?: emptyList()
-        val tmpRids = relTktIds?.split(",")
-        val relIds = tmpRids?.map { a -> a.toInt() } ?: emptyList()
-        val ok = ticketSvc.updateTicket(tkt, addTags, relIds)
+        if (!Strings.isNullOrEmpty(relTktIds)) {
+            val tmpRids = relTktIds?.split(",")
+            relIds = tmpRids!!.map { a -> a.toInt() }
+        }
+        if (!Strings.isNullOrEmpty(scenicSids)) {
+            val tmpSids = scenicSids?.split(',')
+            sids = tmpSids!!.map { a -> a.toInt() }
+        }
+        val ok = ticketSvc.updateTicket(tkt, sids, addTags, relIds)
         if (ok) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
         }
@@ -265,8 +303,11 @@ class ManageTicketController : BaseController() {
         @RequestParam("title", required = false) title: String?,
         @RequestParam("remark", required = false) remark: String?,
         @RequestParam("description", required = false) description: String?,
+        @RequestParam("original_price", required = false) originalPrice: Double?,
         @RequestParam("notice_remark", required = false) noticeRemark: String?,
-        req:HttpServletRequest
+        @RequestParam("custom_prices", required = false) customPrices: String?,
+        @RequestParam("idcard_prices", required = false) idCardPrices: String?,
+        req: HttpServletRequest
     ): com.cj.ticketsys.controller.dto.Result {
         if (tid == null || tid <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:tid")
@@ -284,6 +325,9 @@ class ManageTicketController : BaseController() {
         if (price == null || price <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
         }
+        if (originalPrice == null || originalPrice <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:original_price")
+        }
         if (stocks == null || stocks <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
@@ -292,7 +336,7 @@ class ManageTicketController : BaseController() {
         }
 
         var prices = ticketPriceDao.gets(tid)
-        if(prices.any { a->a.channelType.value == chType.toShort() }) {
+        if (prices.any { a -> a.channelType.value == chType.toShort() }) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "渠道已存在价格")
         }
 
@@ -301,6 +345,7 @@ class ManageTicketController : BaseController() {
         tp.name = name!!
         tp.channelType = ChannelTypes.prase(chType)
         tp.price = price
+        tp.originalPrice = originalPrice
         tp.stocks = stocks
         tp.stockLimitType = TicketStockLimitTypes.All
         tp.state = TicketStates.prase(state)
@@ -310,6 +355,21 @@ class ManageTicketController : BaseController() {
         tp.remark = remark ?: ""
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
+
+        if (!Strings.isNullOrEmpty(customPrices)) {
+            val checkOK = checkCustomPricesProperty(customPrices!!)
+            if (!checkOK) {
+                return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "custom_prices格式错误")
+            }
+            tp.customPrices = customPrices
+        }
+        if (!Strings.isNullOrEmpty(idCardPrices)) {
+            val checkOK = checkIDCardPricesProperty(idCardPrices!!)
+            if (!checkOK) {
+                return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "idcard_prices格式错误")
+            }
+            tp.idCardPrices = idCardPrices
+        }
 
         val useDate: TicketUseDate
         try {
@@ -321,8 +381,11 @@ class ManageTicketController : BaseController() {
             useDate.workDay = udr.workDay
             useDate.weekendDay = udr.weekendDay
             useDate.legalDay = udr.legalDay
-            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString() else ""
-            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString() else ""
+            useDate.workPrice = udr.workPrice ?: 0.0
+            useDate.weekendPrice = udr.weekendPrice ?: 0.0
+            useDate.legalPrice = udr.legalPrice ?: 0.0
+            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
+            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
         } catch (e: Exception) {
             e.printStackTrace()
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")
@@ -334,9 +397,49 @@ class ManageTicketController : BaseController() {
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "添加失败")
     }
 
-    @PutMapping("price")
+    fun checkCustomPricesProperty(txt: String): Boolean {
+        val dps = txt.split(";")
+        for (dp in dps) {
+            val dds = dp.split(":")
+            if (dds.size != 2) {
+                return false
+            }
+            if (Doubles.tryParse(dds[1]) == null) {
+                return false
+            }
+            val dates = dds[0].split(",")
+            for (date in dates) {
+                if (Ints.tryParse(date) == null) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    fun checkIDCardPricesProperty(txt: String): Boolean {
+        val dps = txt.split(";")
+        for (dp in dps) {
+            val dds = dp.split(":")
+            if (dds.size != 3) {
+                return false
+            }
+            if (Doubles.tryParse(dds[1]) == null) {
+                return false
+            }
+            val ids = dds[0].split(",")
+            for (id in ids) {
+                if (Strings.isNullOrEmpty(id)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    @PutMapping("price/{id}")
     fun updatePrice(
-        @RequestParam("id", required = false) id: Int?,
+        @PathVariable("id", required = false) id: Int?,
         @RequestParam("ud_date", required = false) udDate: String?,
         @RequestParam("ch_type", required = false) chType: Int?,
         @RequestParam("name", required = false) name: String?,
@@ -349,7 +452,10 @@ class ManageTicketController : BaseController() {
         @RequestParam("title", required = false) title: String?,
         @RequestParam("remark", required = false) remark: String?,
         @RequestParam("description", required = false) description: String?,
-        @RequestParam("notice_remark", required = false) noticeRemark: String?
+        @RequestParam("original_price", required = false) originalPrice: Double?,
+        @RequestParam("notice_remark", required = false) noticeRemark: String?,
+        @RequestParam("custom_prices", required = false) customPrices: String?,
+        @RequestParam("idcard_prices", required = false) idCardPrices: String?
     ): com.cj.ticketsys.controller.dto.Result {
         if (id == null || id <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:id")
@@ -367,6 +473,9 @@ class ManageTicketController : BaseController() {
         if (price == null || price <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
         }
+        if (originalPrice == null || originalPrice <= 0) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:original_price")
+        }
         if (stocks == null || stocks <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
@@ -379,6 +488,7 @@ class ManageTicketController : BaseController() {
         tp.name = name!!
         tp.channelType = ChannelTypes.prase(chType)
         tp.price = price
+        tp.originalPrice = originalPrice
         tp.stocks = stocks
         tp.stockLimitType = TicketStockLimitTypes.All
         tp.state = TicketStates.prase(state)
@@ -389,18 +499,42 @@ class ManageTicketController : BaseController() {
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
 
+        if (!Strings.isNullOrEmpty(customPrices)) {
+            val checkOK = checkCustomPricesProperty(customPrices!!)
+            if (!checkOK) {
+                return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "custom_prices格式错误")
+            }
+            tp.customPrices = customPrices
+        } else {
+            tp.customPrices = ""
+        }
+
+        if (!Strings.isNullOrEmpty(idCardPrices)) {
+            val checkOK = checkIDCardPricesProperty(idCardPrices!!)
+            if (!checkOK) {
+                return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "idcard_prices格式错误")
+            }
+            tp.idCardPrices = idCardPrices
+        } else {
+            tp.idCardPrices = ""
+        }
+
         val useDate: TicketUseDate
         try {
             val objectMapper = ObjectMapper()
             val udr = objectMapper.readValue(udDate, UseDateRequest::class.java)
             useDate = TicketUseDate()
+            useDate.id = tp.useDateId
             useDate.name = udr.name ?: ""
             useDate.remark = udr.remark ?: ""
             useDate.workDay = udr.workDay
             useDate.weekendDay = udr.weekendDay
             useDate.legalDay = udr.legalDay
-            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString() else ""
-            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString() else ""
+            useDate.workPrice = udr.workPrice ?: 0.0
+            useDate.weekendPrice = udr.weekendPrice ?: 0.0
+            useDate.legalPrice = udr.legalPrice ?: 0.0
+            useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
+            useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
         } catch (e: Exception) {
             e.printStackTrace()
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")

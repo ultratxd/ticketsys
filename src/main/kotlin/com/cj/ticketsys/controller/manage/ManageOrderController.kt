@@ -7,6 +7,7 @@ import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.controller.manage.dto.MOrderDto
 import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.OrderQuery
+import com.cj.ticketsys.entities.BuyTypes
 import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PagedList
@@ -42,6 +43,7 @@ class ManageOrderController : BaseController() {
         @RequestParam("scenic_sid", required = false) scenicSid: Int?,
         @RequestParam("ticket_id", required = false) ticketId: Int?,
         @RequestParam("cid", required = false) cid: Int?,
+        @RequestParam("buy_type", required = false) buyType: Short?,
         @RequestParam("page", required = false) page: Int? = 1,
         @RequestParam("size", required = false) size: Int? = 20
         ):ResultT<PagedList<MOrderDto>> {
@@ -61,19 +63,27 @@ class ManageOrderController : BaseController() {
             }
             query.state = OrderStates.prase(state.toInt())
         }
-        query.payNo = payNo
-        query.refundNo = refundNo
-        query.chId = chId
-        query.chUid = chUid
-        query.userName = userName
-        query.userCard = userCard
-        query.userMobile = userMobile
+        if(buyType != null) {
+            if (!BuyTypes.values().any { s -> s.value == buyType}) {
+                return ResultT(RESULT_FAIL, "buyType状态不存在")
+            }
+            query.buyType = BuyTypes.prase(buyType)
+        }
+        query.payNo = if(!Strings.isNullOrEmpty(payNo)) payNo else null
+        query.refundNo = if(!Strings.isNullOrEmpty(refundNo)) refundNo else null
+        query.chId = if(!Strings.isNullOrEmpty(chId)) chId else null
+        query.chUid = if(!Strings.isNullOrEmpty(chUid)) chUid else null
+        query.userName = if(!Strings.isNullOrEmpty(userName)) userName else null
+        query.userCard = if(!Strings.isNullOrEmpty(userCard)) userCard else null
+        query.userMobile = if(!Strings.isNullOrEmpty(userMobile)) userMobile else null
         query.scenicId = scenicId
         query.scenicSid = scenicSid
         query.ticketId = ticketId
         query.cid = cid
         if (size == null || size <= 0) {
             query.size = 20
+        }else {
+            query.size = size
         }
         var tmpPage = 0
         if (page == null || page <= 0) {

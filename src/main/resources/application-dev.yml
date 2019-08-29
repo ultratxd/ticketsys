@@ -10,9 +10,9 @@ server:
 spring:
   datasource:
     name: mydb
-    url: jdbc:mysql://127.0.0.1:3306/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+    url: jdbc:mysql://172.28.3.45:20010/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
     username: root
-    password: ultra
+    password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     initialSize: 5

@@ -3,12 +3,10 @@ package com.cj.ticketsys.svc.impl
 import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.dao.ScenicSpotDao
+import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
-import com.cj.ticketsys.entities.CardTypes
-import com.cj.ticketsys.entities.Order
-import com.cj.ticketsys.entities.SubOrder
-import com.cj.ticketsys.entities.Ticket
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -34,13 +32,16 @@ class GeneralTicketBuyer : TicketBuyer {
     private lateinit var orderSvc: OrderSvc
 
     @Autowired
+    private lateinit var subOrderDao: SubOrderDao
+
+    @Autowired
     private lateinit var scenicSpotDao: ScenicSpotDao
 
     @Autowired
     private lateinit var inventoryManagement: InventoryManagement
 
     @Autowired
-    private lateinit var ticketSnapshotCreator: SnapshotCreator<Ticket,TicketSnapshot>
+    private lateinit var ticketSnapshotCreator: SnapshotCreator<Ticket, TicketSnapshot>
 
     @Transactional(rollbackFor = [Exception::class])
     @Synchronized
@@ -74,7 +75,41 @@ class GeneralTicketBuyer : TicketBuyer {
                 return BuyResult("BUY:1006", "票已售罄")
             }
 
-            totalMoney += price.price * bt.ticketNums
+            var unitPrice = price.price
+            val idCardPrices = price.getTicketIDCardPrices()
+            var priceDiscountType = PriceDiscountTypes.Nothing
+
+            //特定日期折扣
+            val cusDatePrices = price.getTicketCustomDataPrices()
+            if (cusDatePrices.any { a -> a.date == bt.date }) {
+                unitPrice = cusDatePrices.first { a -> a.date == bt.date }.price
+                priceDiscountType = PriceDiscountTypes.Date
+            }
+            //特定身份证折扣
+            if (bt.cardType == CardTypes.IDCard && idCardPrices.any()) {
+                for (idp in idCardPrices) {
+                    if (bt.userCard.startsWith(idp.idCardPrefix)) {
+                        val count = subOrderDao.idCardAndTicketCount(bt.userCard, ticket.id)
+                        if (count > 0) {
+                            continue
+                        }
+                        //有购买特惠日期数据 并 使用日期在购买特惠日期中不存在
+                        if(idp.limitDates.isEmpty()) {
+                            unitPrice = idp.price
+                            priceDiscountType = PriceDiscountTypes.IDCard
+                            break
+                        }
+                        if(idp.limitDates.any { a-> a == bt.date }) {
+                            unitPrice = idp.price
+                            priceDiscountType = PriceDiscountTypes.IDCard
+                            break
+                        }
+                        break
+                    }
+                }
+            }
+
+            totalMoney += unitPrice * bt.ticketNums
             totalCount += bt.ticketNums
 
             val subOrder = SubOrder()
@@ -88,12 +123,13 @@ class GeneralTicketBuyer : TicketBuyer {
             subOrder.scenicSid = scenic.id
             subOrder.ticketId = ts.id
             subOrder.ticketPid = bt.ticketPriceId
-            subOrder.unitPrice = price.price
-            subOrder.totalPrice = price.price * bt.ticketNums
+            subOrder.unitPrice = unitPrice
+            subOrder.totalPrice = unitPrice * bt.ticketNums
             subOrder.nums = bt.ticketNums
             subOrder.pernums = ts.perNums
             subOrder.useDate = Utils.intToDate(bt.date)
             subOrder.cid = ts.cid
+            subOrder.priceDiscountType = priceDiscountType
 
             subOrder.snapshot = JSON.toJSONString(ticketSnapshotCreator.create(ts))
             subOrders.add(subOrder)
@@ -105,6 +141,7 @@ class GeneralTicketBuyer : TicketBuyer {
         buyOrder.channelId = order.partner!!.id
         buyOrder.channelUid = order.channelUid
         buyOrder.ip = order.buyerIp
+        buyOrder.buyType = order.buyType
         subOrders.map { a -> a.orderId = buyOrder.orderId }
         val ok = orderSvc.create(buyOrder, subOrders)
         if (ok) {

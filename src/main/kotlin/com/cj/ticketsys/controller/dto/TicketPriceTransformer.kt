@@ -22,6 +22,7 @@ class TicketPriceTransformer: DocTransformer<TicketPrice,TicketPriceDto> {
         dto.tid = data.tid
         dto.channelType = data.channelType.value
         dto.price = data.price
+        dto.originalPrice = data.originalPrice ?: 0.0
         dto.stocks = data.stocks
         dto.soldCount = data.solds
         dto.state = data.state.value
