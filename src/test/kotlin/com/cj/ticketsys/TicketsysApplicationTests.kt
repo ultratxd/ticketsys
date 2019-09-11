@@ -32,6 +32,10 @@ class TicketsysApplicationTests {
 
 	@Test
 	fun testApi() {
+		val customDates = ""
+		val list = customDates.split(',')
+		Assert.isTrue(list.size == 0)
+
 		val api = SCApi("10036","WMPBL3N2")
 
 		val order = CreateOrderParameter()

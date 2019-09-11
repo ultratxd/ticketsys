@@ -13,6 +13,11 @@ object Utils {
         return Date.from(instant)
     }
 
+    fun dateToYYYYMMDDInt(date: Date): Int {
+        val d = dateZoneFormat(date,"yyyyMMdd")
+        return d.toInt()
+    }
+
     fun dateZoneFormat(date: Date, fmt: String): String {
         val format = SimpleDateFormat(fmt)
         format.timeZone = TimeZone.getTimeZone("Asia/Shanghai")

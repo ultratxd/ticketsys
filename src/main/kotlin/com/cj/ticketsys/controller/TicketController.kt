@@ -169,7 +169,7 @@ class TicketController : BaseController() {
         }
 
         val partner = partnerDao.get(partnerId!!) ?: return ResultT(RESULT_FAIL, "商户不存在")
-        val tickets = ticketDao.gets(sid, cid, partner.channelType)
+        val tickets = ticketDao.gets(sid, cid, partner.channelType,true)
         val dtos = ArrayList<TicketDto>()
         for (ticket in tickets) {
             priceBinder.bind(ticket, partner.channelType, Utils.intToDate(date))
@@ -274,7 +274,7 @@ class TicketController : BaseController() {
         if (result.status == RESULT_SUCCESS) {
             val resp = BuyTicketResp()
             resp.orderNo = result.order!!.orderId
-            resp.expires = Date(result.order!!.createTime.time + 60 * 60 * 1000).time / 1000
+            resp.expires = Date(result.order!!.createTime.time + 30 * 60 * 1000).time / 1000
             resp.ticketCount = result.order!!.childs
             resp.totalMoney = result.order!!.price
             return ResultT(RESULT_SUCCESS, "ok", resp)

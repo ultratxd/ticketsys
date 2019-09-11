@@ -40,6 +40,7 @@ class MTicketTransformer  : DocTransformer<Ticket, MTicketDto> {
         dto.cid = data.cid
         dto.frontView = data.frontView
         dto.iconUrl = data.iconUrl
+        dto.title = data.title
         dto.extra = data.map
         dto.createTime = data.createTime
 

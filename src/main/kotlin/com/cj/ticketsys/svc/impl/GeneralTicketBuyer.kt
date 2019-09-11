@@ -65,7 +65,7 @@ class GeneralTicketBuyer : TicketBuyer {
             )
                 ?: return BuyResult("BUY:1003", "购买的票不存在")
 
-            val existPrice = ts.prices.stream().filter { t -> t.id == price.id }.count()
+            val existPrice = ts.prices.stream().filter { t -> t.id == bt.ticketPriceId }.count()
             if (existPrice == 0L) {
                 return BuyResult("BUY:1005", "票价不存在")
             }
@@ -75,16 +75,17 @@ class GeneralTicketBuyer : TicketBuyer {
                 return BuyResult("BUY:1006", "票已售罄")
             }
 
-            var unitPrice = price.price
+            val fPrice =  ts.prices.first { a->a.id == bt.ticketPriceId };
+            var unitPrice = fPrice.price
             val idCardPrices = price.getTicketIDCardPrices()
-            var priceDiscountType = PriceDiscountTypes.Nothing
+            var priceDiscountType = fPrice.discountType
 
-            //特定日期折扣
-            val cusDatePrices = price.getTicketCustomDataPrices()
-            if (cusDatePrices.any { a -> a.date == bt.date }) {
-                unitPrice = cusDatePrices.first { a -> a.date == bt.date }.price
-                priceDiscountType = PriceDiscountTypes.Date
-            }
+//            //特定日期折扣
+//            val cusDatePrices = price.getTicketCustomDataPrices()
+//            if (cusDatePrices.any { a -> a.date == bt.date }) {
+//                unitPrice = cusDatePrices.first { a -> a.date == bt.date }.price
+//                priceDiscountType = PriceDiscountTypes.Date
+//            }
             //特定身份证折扣
             if (bt.cardType == CardTypes.IDCard && idCardPrices.any()) {
                 for (idp in idCardPrices) {

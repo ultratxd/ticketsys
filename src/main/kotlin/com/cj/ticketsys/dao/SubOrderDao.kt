@@ -109,7 +109,7 @@ interface SubOrderDao {
     fun gets(orderNo: String): List<SubOrder>
 
     @Select(
-        "select count(0) from sub_orders where ucard=#{idCard} and ticket_id=#{tid}"
+        "select count(0) from sub_orders where ucard=#{idCard} and ticket_id=#{tid} and state != 99 and state != 50"
     )
     fun idCardAndTicketCount(idCard: String, tid: Int): Long
 }

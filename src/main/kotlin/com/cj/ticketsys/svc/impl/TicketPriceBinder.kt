@@ -3,10 +3,7 @@ package com.cj.ticketsys.svc.impl
 import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.dao.TicketUseDateDao
-import com.cj.ticketsys.entities.ChannelTypes
-import com.cj.ticketsys.entities.DateTypes
-import com.cj.ticketsys.entities.Ticket
-import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.PriceBinder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -50,18 +47,36 @@ class TicketPriceBinder : PriceBinder {
             val useDate = ticketUseDateDao.get(p.useDateId)
             if (useDate == null) {
                 usePrices.add(p)
-                continue
+                break
             }
             //特定不能使用日期
             val notBuyDates = useDate.notDates.split(",")
             if (notBuyDates.any { d -> d == dateFmt }) {
-                continue
+                break
             }
-            var added = false;
+            var added = false
+            //特定使用日期
+            val customDates = useDate.customDates.split(',')
+            if (customDates.any() && customDates.first().isNotEmpty()) {
+                if (customDates.any { d -> d == dateFmt }) {
+                    usePrices.add(p)
+                }
+                break
+            }
+
+            //特定日期折扣
+            val cusDatePrices = p.getTicketCustomDataPrices()
+            if (cusDatePrices.any { a -> a.date == dateFmt.toInt() }) {
+                p.price = cusDatePrices.first { a -> a.date == dateFmt.toInt() }.price
+                p.discountType = PriceDiscountTypes.Date
+                usePrices.add(p)
+                break
+            }
+
             when (dateType) {
                 DateTypes.WorkDay -> {
                     if (useDate.workDay) {
-                        if(useDate.workPrice != null) {
+                        if (useDate.workPrice != null) {
                             p.price = useDate.workPrice!!
                         }
                         usePrices.add(p)
@@ -70,7 +85,7 @@ class TicketPriceBinder : PriceBinder {
                 }
                 DateTypes.WeekendDay -> {
                     if (useDate.weekendDay) {
-                        if(useDate.weekendPrice != null) {
+                        if (useDate.weekendPrice != null) {
                             p.price = useDate.weekendPrice!!
                         }
                         usePrices.add(p)
@@ -79,19 +94,12 @@ class TicketPriceBinder : PriceBinder {
                 }
                 DateTypes.LegalDay -> {
                     if (useDate.legalDay) {
-                        if(useDate.legalPrice != null) {
+                        if (useDate.legalPrice != null) {
                             p.price = useDate.legalPrice!!
                         }
                         usePrices.add(p)
                         added = true
                     }
-                }
-            }
-            //特定使用日期
-            if (!added) {
-                val customDates = useDate.customDates.split(',')
-                if (customDates.any { d -> d == dateFmt }) {
-                    usePrices.add(p)
                 }
             }
         }

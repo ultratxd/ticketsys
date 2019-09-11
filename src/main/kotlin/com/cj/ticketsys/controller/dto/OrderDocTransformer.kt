@@ -5,6 +5,7 @@ import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.SubOrder
+import com.cj.ticketsys.entities.TicketCodeStates
 import com.cj.ticketsys.svc.DocTransformer
 import com.cj.ticketsys.svc.Utils
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +43,7 @@ class OrderDocTransformer : DocTransformer<Order, OrderDto> {
         bindOrderTicketCode(data, dto)
 
         if (data.state == OrderStates.Init) {
-            val expireTime = data.createTime.time + 60 * 60 * 1000
+            val expireTime = data.createTime.time + 30 * 60 * 1000
             if (expireTime > System.currentTimeMillis()) {
                 dto.expireSeconds = ((expireTime - System.currentTimeMillis()) / 1000).toInt()
             }
@@ -52,16 +53,21 @@ class OrderDocTransformer : DocTransformer<Order, OrderDto> {
     }
 
 
-    fun bindOrderTicketCode(data: Order, dto: OrderDto) {
-        if (OrderStates.Issued.value <= data.state.value && OrderStates.Closed.value > data.state.value) {
-            val tcode = orderTicketCodeDao.get(data.orderId)
+    fun bindOrderTicketCode(order: Order, dto: OrderDto) {
+        if (OrderStates.Issued.value <= order.state.value && OrderStates.Closed.value > order.state.value) {
+            val tcode = orderTicketCodeDao.get(order.orderId)
             if (tcode != null) {
                 dto.extra.put("ticket_code", tcode.code)
-//                val fmt = SimpleDateFormat("yyyy-MM-dd")
-//                fmt.timeZone = TimeZone.getTimeZone("Asia/Shanghai")
-//                dto.extra.put("code_use_date", fmt.format(tcode.useDate))
                 dto.extra.put("code_use_date", Utils.dateZoneFormat(tcode.useDate, "yyyy-MM-dd"))
-                dto.extra.put("code_use_state", tcode.state.value)
+                var state = tcode.state
+                if (state == TicketCodeStates.Unused) {
+                    val useD = Utils.dateToYYYYMMDDInt(tcode.useDate)
+                    val nowD = Utils.dateToYYYYMMDDInt(Date())
+                    if(useD < nowD) {
+                        state = TicketCodeStates.Expired
+                    }
+                }
+                dto.extra.put("code_use_state", state.value)
             }
         }
     }

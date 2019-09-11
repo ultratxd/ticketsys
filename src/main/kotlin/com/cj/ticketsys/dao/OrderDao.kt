@@ -35,18 +35,28 @@ interface OrderDao {
     fun delete(orderNo: String): Long
 
     @Select(
-        "<script>select count(0) from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0 " +
+        "<script>select count(0) from orders where ch_uid=#{uid} and deleted=0 " +
+                "<if test=\"partnerIds !=null\">and ch_id in " +
+                "<foreach item=\"item\" index=\"index\" collection=\"partnerIds\" open=\"(\" separator=\",\" close=\")\">" +
+                "   #{item}" +
+                "</foreach>" +
+                "</if> " +
                 "<if test=\"state !=null\">and state=#{state}</if> " +
                 "</script>"
     )
-    fun getsByUidCount(uid: String, partnerId: String, state: OrderStates?): Long
+    fun getsByUidCount(uid: String, partnerIds: List<String>?, state: OrderStates?): Long
 
     @Select(
-        "<script>select * from orders where ch_uid=#{uid} and ch_id=#{partnerId} and deleted=0" +
+        "<script>select * from orders where ch_uid=#{uid} and deleted=0" +
+                "<if test=\"partnerIds !=null\">and ch_id in " +
+                "<foreach item=\"item\" index=\"index\" collection=\"partnerIds\" open=\"(\" separator=\",\" close=\")\">" +
+                "   #{item}" +
+                "</foreach>" +
+                "</if> " +
                 "<if test=\"state !=null\">and state=#{state}</if> " +
                 " order by create_time desc limit #{offset},#{size}</script>"
     )
-    fun getsByUid(uid: String, partnerId: String, state: OrderStates?, offset: Int = 0, size: Int = 20): List<Order>
+    fun getsByUid(uid: String, partnerIds: List<String>?, state: OrderStates?, offset: Int = 0, size: Int = 20): List<Order>
 
     @Select(
         "select * from orders where order_id=#{id}"

@@ -20,5 +20,9 @@ class Ticket : PropertyEntity() {
         get() = this.getProperty("icon_url") as String?
         set(value) = this.setProperty("icon_url", value)
 
+    var title: String?
+        get() = this.getProperty("title") as String?
+        set(value) = this.setProperty("title", value)
+
     var prices:MutableList<TicketPrice> = ArrayList()
 }

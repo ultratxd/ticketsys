@@ -8,6 +8,7 @@ import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.PriceBinder
 import com.cj.ticketsys.svc.TicketSvc
 import com.cj.ticketsys.svc.Utils
+import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -102,6 +103,9 @@ class TicketSvcImpl : TicketSvc {
     ): Boolean {
         val addTags = ArrayList<Int>()
         for (tag in tags) {
+            if(Strings.isNullOrEmpty(tag)) {
+                continue
+            }
             var eTag = ticketDao.getTagByName(tag, 1)
             if (eTag == null) {
                 eTag = Tag()
@@ -155,6 +159,9 @@ class TicketSvcImpl : TicketSvc {
     ): Boolean {
         val addTags = ArrayList<Int>()
         for (tag in tags) {
+            if(Strings.isNullOrEmpty(tag)) {
+                continue
+            }
             var eTag = ticketDao.getTagByName(tag, 1)
             if (eTag == null) {
                 eTag = Tag()
@@ -164,6 +171,8 @@ class TicketSvcImpl : TicketSvc {
                 if (eTag.id > 0) {
                     addTags.add(eTag.id)
                 }
+            }else {
+                addTags.add(eTag.id)
             }
         }
         val c = ticketDao.update(tkt)
@@ -171,14 +180,14 @@ class TicketSvcImpl : TicketSvc {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
             return false
         }
+        ticketDao.delTicketTags(tkt.id)
         if (addTags.any()) {
-            ticketDao.delTicketTags(tkt.id)
             for (tagId in addTags) {
                 ticketDao.insertTicketTag(tkt.id, tagId)
             }
         }
+        ticketDao.delRelatedTickets(tkt.id)
         if (relTktIds.any()) {
-            ticketDao.delRelatedTickets(tkt.id)
             for (rid in relTktIds) {
                 if (ticketDao.insertRelatedTicket(tkt.id, rid) == 0L) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()

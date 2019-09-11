@@ -32,7 +32,7 @@ class OrderScheduler {
     @Transactional(rollbackFor = [Exception::class])
     fun deleteExpireOrder() {
         val ts = System.currentTimeMillis()
-        val d = Date(ts - 60 * 60 * 1000)
+        val d = Date(ts - 30 * 60 * 1000)
         val orders = orderDao.getExpiredOrders(d)
         for (order in orders) {
             val subOrders = subOrderDao.gets(order.orderId)

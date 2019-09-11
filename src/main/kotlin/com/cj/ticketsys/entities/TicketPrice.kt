@@ -88,6 +88,8 @@ class TicketPrice : PropertyEntity() {
         }
         return prices
     }
+
+    var discountType: PriceDiscountTypes = PriceDiscountTypes.Nothing
 }
 
 data class TicketDatePrice(val date: Int, val price: Double)

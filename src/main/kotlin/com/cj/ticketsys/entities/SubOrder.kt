@@ -9,7 +9,7 @@ class SubOrder:PropertyEntity() {
     var payTime:Date? = null
     var payNo:String? = null
     var refundTime:Date? = null
-    var refundNo:Date? = null
+    var refundNo:String? = null
     var channelId:String = ""
     var channelUid:String = ""
     var uName:String = ""

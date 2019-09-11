@@ -28,6 +28,7 @@ class TicketDocTransformer : DocTransformer<Ticket,TicketDto> {
         dto.state = data.state.value
         dto.cid = data.cid
         dto.iconUrl = data.iconUrl
+        dto.title = data.title
 
 
 

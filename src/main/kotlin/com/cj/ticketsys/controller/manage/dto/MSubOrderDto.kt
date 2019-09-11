@@ -15,7 +15,7 @@ class MSubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
     @JsonProperty("refund_time")
     var refundTime: Date? = null
     @JsonProperty("refund_no")
-    var refundNo: Date? = null
+    var refundNo: String? = null
     @JsonProperty("uid")
     var uid:String = ""
     @JsonProperty("scenic_id")

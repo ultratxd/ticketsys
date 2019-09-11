@@ -8,6 +8,7 @@ import kotlin.collections.ArrayList
 class TicketSnapshot {
     var id:Int = 0
     var name: String = ""
+    var title: String? = null
     @JsonProperty("per_nums")
     var perNums: Int = 0
     @JsonProperty("create_time")

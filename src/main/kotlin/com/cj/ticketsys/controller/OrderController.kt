@@ -95,7 +95,8 @@ class OrderController : BaseController() {
         @PathVariable("uid", required = true) uid: String,
         @RequestParam("state", required = false) state: Short?,
         @RequestParam("partner_id", required = false) partnerId: String?,
-        @RequestParam("page", required = false) page: Int?
+        @RequestParam("page", required = false) page: Int?,
+        @RequestParam("size", required = false) size: Int?
     ): ResultT<PagedList<OrderDto>> {
         if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
             return ResultT(RESULT_FAIL, "参数错误")
@@ -107,21 +108,25 @@ class OrderController : BaseController() {
             }
             oState = OrderStates.prase(state.toInt())
         }
+        val partnerIds = partnerId!!.split(",")
 
-        val total = orderDao.getsByUidCount(uid, partnerId!!, oState)
+        val total = orderDao.getsByUidCount(uid, partnerIds, oState)
         var p = 1
-        val size = 20
+        var pSize = 20
         if (page != null && page > 0) {
             p = page
         }
-        val offset = (p - 1) * size
-        val list = orderDao.getsByUid(uid, partnerId, oState, offset, size)
+        if(size != null && size > 0) {
+            pSize = size
+        }
+        val offset = (p - 1) * pSize
+        val list = orderDao.getsByUid(uid, partnerIds, oState, offset, pSize)
         val dtos = ArrayList<OrderDto>()
         for (order in list) {
             val dto = orderTransformer.transform(order)!!
             dtos.add(dto)
         }
-        val pList = PagedList(p, size, total, dtos)
+        val pList = PagedList(p, pSize, total, dtos)
         return ResultT(RESULT_SUCCESS, "ok", pList)
     }
 
@@ -133,7 +138,7 @@ class OrderController : BaseController() {
         if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
             return ResultT(RESULT_FAIL, "参数错误")
         }
-        val cards = cardTicketDao.getsByPartner(uid, partnerId!!)
+        val cards = cardTicketDao.getsByPartner(partnerId!!, uid)
         val list = ArrayList<CardTicketDto>()
         for (card in cards) {
             list.add(cardTicketTransformer.transform(card)!!)
@@ -229,9 +234,9 @@ class OrderController : BaseController() {
         val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.System)
             ?: return Result(RESULT_FAIL, "编号不存在")
         val ok = orderSvc.completdEnter(tCode.orderId, code, OrderTicketCodeProviders.System)
-        if(ok) {
+        if (ok) {
             return Result(RESULT_SUCCESS, "核销成功")
         }
-        return  Result(RESULT_FAIL, "核销失败")
+        return Result(RESULT_FAIL, "核销失败")
     }
 }

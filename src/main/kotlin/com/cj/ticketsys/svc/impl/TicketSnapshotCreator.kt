@@ -23,6 +23,7 @@ class TicketSnapshotCreator : SnapshotCreator<Ticket, TicketSnapshot> {
         val snapshot = TicketSnapshot()
         snapshot.id = obj.id
         snapshot.name = obj.name
+        snapshot.title = obj.title
         snapshot.perNums = obj.perNums
         snapshot.createTime = obj.createTime
         snapshot.enterRemark = obj.enterRemark

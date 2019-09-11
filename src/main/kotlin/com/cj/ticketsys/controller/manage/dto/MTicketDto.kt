@@ -25,6 +25,8 @@ class MTicketDto(val id: Int) {
     var frontView: Boolean = false
     @JsonProperty("icon_url")
     var iconUrl: String? = null
+    @JsonProperty("title")
+    var title: String? = null
     @JsonProperty("tags")
     var tags: MutableList<String> = ArrayList()
 

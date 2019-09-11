@@ -47,9 +47,6 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
 
             val c = orderTicketCodeDao.insert(tCode)
             if (c > 0) {
-                order.state = OrderStates.Issued
-                order.issueTicketTime = Date()
-                orderDao.update(order)
 
                 subOrders.map { s ->
                     {
@@ -74,9 +71,16 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
                     cTicket.lastActivateTime = Date(subOrder.createTime.time + (1000L * 3600 * 24 * 300))
                     cTicket.code = makeCode(partner?.channelType, subOrder.createTime, TicketCategories.Card.value)
                     cardTicketDao.insert(cTicket)
+                    subOrder.state = OrderStates.Issued
+                    subOrder.issueTicketTime = Date()
+                    subOrderDao.update(subOrder)
                 }
             }
         }
+
+        order.state = OrderStates.Issued
+        order.issueTicketTime = Date()
+        orderDao.update(order)
     }
 
     fun makeCode(channelType: ChannelTypes?, date: Date, cid: Int): String {
@@ -85,6 +89,6 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
         val ydm = Utils.dateZoneFormat(date, "MMdd")//datefmt.format(date)
         val tag = String.format("%02d", channelType?.value ?: 99)
         val rnd = String.format("%06d",Random().nextInt(1000000))
-        return "$tag$cid$ydm$$rnd"
+        return "$tag$cid$ydm$rnd"
     }
 }

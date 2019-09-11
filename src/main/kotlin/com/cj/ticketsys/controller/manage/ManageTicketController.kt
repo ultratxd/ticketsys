@@ -143,6 +143,7 @@ class ManageTicketController : BaseController() {
         @RequestParam("scenic_sids", required = false) scenicSids: String?,
         @RequestParam("cloud_id", required = false) cloudId: String?,
         @RequestParam("name", required = false) name: String?,
+        @RequestParam("title", required = false) title: String?,
         @RequestParam("per_nums", required = false) perNums: Int?,
         @RequestParam("enter_remark", required = false) enterRemark: String?,
         @RequestParam("buy_remark", required = false) buyRemark: String?,
@@ -157,9 +158,9 @@ class ManageTicketController : BaseController() {
         if (Strings.isNullOrEmpty(scenicSids)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
         }
-        if (Strings.isNullOrEmpty(cloudId)) {
-            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
-        }
+//        if (Strings.isNullOrEmpty(cloudId)) {
+//            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
+//        }
         if (Strings.isNullOrEmpty(name)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
         }
@@ -176,7 +177,7 @@ class ManageTicketController : BaseController() {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
         val tkt = Ticket()
-        tkt.cloudId = cloudId!!
+        tkt.cloudId = cloudId ?: ""
         tkt.name = name!!
         tkt.perNums = perNums
         tkt.enterRemark = enterRemark ?: ""
@@ -185,6 +186,7 @@ class ManageTicketController : BaseController() {
         tkt.frontView = frontView ?: false
         tkt.cid = cid
         tkt.iconUrl = iconUrl ?: ""
+        tkt.title = title
         tkt.state = TicketStates.prase(state)
 
         var relIds: List<Int> = ArrayList()
@@ -213,6 +215,7 @@ class ManageTicketController : BaseController() {
         @RequestParam("scenic_sids", required = false) scenicSids: String?,
         @RequestParam("cloud_id", required = false) cloudId: String?,
         @RequestParam("name", required = false) name: String?,
+        @RequestParam("title", required = false) title: String?,
         @RequestParam("per_nums", required = false) perNums: Int?,
         @RequestParam("enter_remark", required = false) enterRemark: String?,
         @RequestParam("buy_remark", required = false) buyRemark: String?,
@@ -228,16 +231,16 @@ class ManageTicketController : BaseController() {
         if (Strings.isNullOrEmpty(scenicSids)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
         }
-        if (Strings.isNullOrEmpty(cloudId)) {
-            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
-        }
+//        if (Strings.isNullOrEmpty(cloudId)) {
+//            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:cloud_id")
+//        }
         if (Strings.isNullOrEmpty(name)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
         }
         if (perNums == null || perNums <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:per_nums")
         }
-        if (stocks == null || stocks <= 0) {
+        if (stocks == null || stocks < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
         if (cid == null || cid <= 0 || !TicketCategories.values().any { a -> a.value == cid }) {
@@ -247,7 +250,7 @@ class ManageTicketController : BaseController() {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
 
-        tkt.cloudId = cloudId!!
+        tkt.cloudId = cloudId ?: ""
         tkt.name = name!!
         tkt.perNums = perNums
         tkt.enterRemark = enterRemark ?: ""
@@ -256,6 +259,7 @@ class ManageTicketController : BaseController() {
         tkt.frontView = frontView ?: false
         tkt.cid = cid
         tkt.iconUrl = iconUrl
+        tkt.title = title
         tkt.state = TicketStates.prase(state)
         var relIds: List<Int> = ArrayList()
         var sids: List<Int> = ArrayList()
@@ -322,13 +326,13 @@ class ManageTicketController : BaseController() {
         if (Strings.isNullOrEmpty(name)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
         }
-        if (price == null || price <= 0) {
+        if (price == null || price < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
         }
-        if (originalPrice == null || originalPrice <= 0) {
+        if (originalPrice == null || originalPrice < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:original_price")
         }
-        if (stocks == null || stocks <= 0) {
+        if (stocks == null || stocks < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
         if (state == null || state <= 0) {
@@ -381,9 +385,9 @@ class ManageTicketController : BaseController() {
             useDate.workDay = udr.workDay
             useDate.weekendDay = udr.weekendDay
             useDate.legalDay = udr.legalDay
-            useDate.workPrice = udr.workPrice ?: 0.0
-            useDate.weekendPrice = udr.weekendPrice ?: 0.0
-            useDate.legalPrice = udr.legalPrice ?: 0.0
+            useDate.workPrice = udr.workPrice
+            useDate.weekendPrice = udr.weekendPrice
+            useDate.legalPrice = udr.legalPrice
             useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
             useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
         } catch (e: Exception) {
@@ -470,13 +474,13 @@ class ManageTicketController : BaseController() {
         if (Strings.isNullOrEmpty(name)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:name")
         }
-        if (price == null || price <= 0) {
+        if (price == null || price < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:price")
         }
-        if (originalPrice == null || originalPrice <= 0) {
+        if (originalPrice == null || originalPrice < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:original_price")
         }
-        if (stocks == null || stocks <= 0) {
+        if (stocks == null || stocks < 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:stocks")
         }
         if (stocks != 0 && stocks < tp.solds) {
@@ -530,9 +534,9 @@ class ManageTicketController : BaseController() {
             useDate.workDay = udr.workDay
             useDate.weekendDay = udr.weekendDay
             useDate.legalDay = udr.legalDay
-            useDate.workPrice = udr.workPrice ?: 0.0
-            useDate.weekendPrice = udr.weekendPrice ?: 0.0
-            useDate.legalPrice = udr.legalPrice ?: 0.0
+            useDate.workPrice = udr.workPrice
+            useDate.weekendPrice = udr.weekendPrice
+            useDate.legalPrice = udr.legalPrice
             useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
             useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
         } catch (e: Exception) {

@@ -22,6 +22,8 @@ open class TicketDto(@JsonProperty("id") val id: Int) {
     var cid:Int = 0
     @JsonProperty("icon_url")
     var iconUrl:String? = null
+    @JsonProperty("title")
+    var title:String? = null
     @JsonProperty("tags")
     var tags:MutableList<String> = ArrayList()
 
