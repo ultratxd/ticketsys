@@ -21,4 +21,6 @@ class UseDateRequest {
     var customDates:List<Int>? = null
     @JsonProperty("not_dates")
     var notDates:List<Int>? = null
+    @JsonProperty("enter_time")
+    var enterTime:Int? = null
 }

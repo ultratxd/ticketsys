@@ -24,4 +24,6 @@ open class TicketUseDateDto {
     var validity:Int = 0
     @JsonProperty("not_dates")
     var notDates:List<Int> = ArrayList()
+    @JsonProperty("enter_time")
+    var enterTime: Int? = null
 }

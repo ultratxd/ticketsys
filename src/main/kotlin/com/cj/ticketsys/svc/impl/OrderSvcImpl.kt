@@ -38,7 +38,7 @@ class OrderSvcImpl : OrderSvc {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return false
                 }
-                inventoryManagement.incrSolds(sub.ticketPid, sub.nums)
+                inventoryManagement.incrSolds(sub.ticketId, sub.ticketPid, sub.nums)
             }
         } else {
             return false
@@ -65,7 +65,7 @@ class OrderSvcImpl : OrderSvc {
         if (c > 0) {
             val subOrders = subOrderDao.gets(orderNo)
             for (subOrder in subOrders) {
-                inventoryManagement.decrSolds(subOrder.ticketPid, subOrder.nums)
+                inventoryManagement.decrSolds(subOrder.ticketId, subOrder.ticketPid, subOrder.nums)
                 subOrderDao.updateState(subOrder.id, OrderStates.Cancel)
             }
         }

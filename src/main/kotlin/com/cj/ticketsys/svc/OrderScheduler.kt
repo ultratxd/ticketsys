@@ -37,7 +37,7 @@ class OrderScheduler {
         for (order in orders) {
             val subOrders = subOrderDao.gets(order.orderId)
             for (subOrder in subOrders) {
-                inventoryManagement.decrSolds(subOrder.ticketPid, subOrder.nums)
+                inventoryManagement.decrSolds(subOrder.ticketId,subOrder.ticketPid, subOrder.nums)
                 subOrderDao.updateState(subOrder.id, OrderStates.Closed)
             }
             orderDao.updateState(order.orderId, OrderStates.Closed)

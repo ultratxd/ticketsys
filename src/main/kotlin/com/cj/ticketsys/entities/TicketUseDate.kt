@@ -13,4 +13,5 @@ class TicketUseDate {
     var customDates:String = ""
     var validity:Int = 0
     var notDates:String = ""
+    var enterTime: Int? = null
 }

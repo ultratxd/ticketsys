@@ -390,6 +390,7 @@ class ManageTicketController : BaseController() {
             useDate.legalPrice = udr.legalPrice
             useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
             useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
+            useDate.enterTime =  if (udr.enterTime != null) udr.enterTime else null
         } catch (e: Exception) {
             e.printStackTrace()
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")
@@ -539,6 +540,7 @@ class ManageTicketController : BaseController() {
             useDate.legalPrice = udr.legalPrice
             useDate.customDates = if (udr.customDates != null) udr.customDates!!.joinToString(",") else ""
             useDate.notDates = if (udr.notDates != null) udr.notDates!!.joinToString(",") else ""
+            useDate.enterTime =  if (udr.enterTime != null) udr.enterTime else null
         } catch (e: Exception) {
             e.printStackTrace()
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "解析ud_date数据错误")

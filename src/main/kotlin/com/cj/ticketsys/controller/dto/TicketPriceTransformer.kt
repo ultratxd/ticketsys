@@ -32,10 +32,10 @@ class TicketPriceTransformer: DocTransformer<TicketPrice,TicketPriceDto> {
         dto.remark = data.remark
         dto.description = data.description
 
-//        val useDate = useDateDao.get(data.id)
-//        if(useDate != null) {
-//            dto.useDate = useDateTransformer.transform(useDate)!!
-//        }
+        val useDate = useDateDao.get(data.useDateId)
+        if(useDate != null) {
+            dto.useDate = useDateTransformer.transform(useDate)!!
+        }
 
         return dto
     }

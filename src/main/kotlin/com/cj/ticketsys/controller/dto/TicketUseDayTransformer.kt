@@ -18,6 +18,7 @@ class TicketUseDayTransformer: DocTransformer<TicketUseDate,TicketUseDateDto> {
         dto.weekendPrice = data.weekendPrice
         dto.legalDay = data.legalDay
         dto.legalPrice = data.legalPrice
+        dto.enterTime = data.enterTime
         if(!Strings.isNullOrEmpty(data.customDates)) {
             dto.customDates = data.customDates.split(",").map { a->a.toInt() }
         }

@@ -1,6 +1,7 @@
 package com.cj.ticketsys.svc.impl
 
 import com.cj.ticketsys.cfg.cache.Cache
+import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.svc.InventoryManagement
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +13,9 @@ class PriceInventoryManagement : InventoryManagement {
 
     @Autowired
     private lateinit var cache: Cache
+
+    @Autowired
+    private lateinit var ticketDao: TicketDao
 
     @Autowired
     private lateinit var ticketPriceDao: TicketPriceDao
@@ -26,12 +30,14 @@ class PriceInventoryManagement : InventoryManagement {
     }
 
     @Transactional
-    override fun incrSolds(tpId: Int, c: Int) {
+    override fun incrSolds(tktId: Int, tpId: Int, c: Int) {
         ticketPriceDao.updateSolds(tpId, c)
+        ticketDao.updateSolds(tktId, c)
     }
 
     @Transactional
-    override fun decrSolds(tpId: Int, c: Int) {
+    override fun decrSolds(tktId: Int, tpId: Int, c: Int) {
         ticketPriceDao.updateSolds(tpId, -c)
+        ticketDao.updateSolds(tktId, -c)
     }
 }
