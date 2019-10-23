@@ -18,7 +18,8 @@ interface TicketDao {
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "pernums", property = "perNums")
+        Result(column = "pernums", property = "perNums"),
+        Result(column = "display_order", property = "displayOrder")
     )
     fun get(id: Int): Ticket?
 
@@ -39,6 +40,7 @@ interface TicketDao {
                 " and tp.channel_type=#{channelType} " +
                 "</if>" +
                 "</where>" +
+                " order by t.display_order desc" +
                 "</script>"
     )
     @Results(
@@ -48,7 +50,8 @@ interface TicketDao {
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "pernums", property = "perNums")
+        Result(column = "pernums", property = "perNums"),
+        Result(column = "display_order", property = "displayOrder")
     )
     fun gets(sid: Int, cid: Int? = null, channelType: ChannelTypes? = null, frontView: Boolean? = true): List<Ticket>
 
@@ -105,7 +108,8 @@ interface TicketDao {
         Result(column = "enter_remark", property = "enterRemark"),
         Result(column = "buy_remark", property = "buyRemark"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "pernums", property = "perNums")
+        Result(column = "pernums", property = "perNums"),
+        Result(column = "display_order", property = "displayOrder")
     )
     fun searchForAdmin(query: TicketQuery): List<Ticket>
 

@@ -43,6 +43,7 @@ class MTicketTransformer  : DocTransformer<Ticket, MTicketDto> {
         dto.title = data.title
         dto.extra = data.map
         dto.createTime = data.createTime
+        dto.displayOrder = data.displayOrder
 
 
         if(data.prices.any()) {

@@ -16,6 +16,7 @@ class Ticket : PropertyEntity() {
     var state: TicketStates = TicketStates.Enabled
     var frontView: Boolean = false
     var cid: Int = 0
+    var displayOrder:Int = 0
     var iconUrl: String?
         get() = this.getProperty("icon_url") as String?
         set(value) = this.setProperty("icon_url", value)

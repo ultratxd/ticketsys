@@ -23,6 +23,8 @@ class MTicketDto(val id: Int) {
     var cid: Int = 0
     @JsonProperty("front_view")
     var frontView: Boolean = false
+    @JsonProperty("display_order")
+    var displayOrder: Int = 0
     @JsonProperty("icon_url")
     var iconUrl: String? = null
     @JsonProperty("title")
