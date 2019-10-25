@@ -45,6 +45,9 @@ class TicketPrice : PropertyEntity() {
     var idCardPrices: String?
         get() = this.getProperty("id_card_prices") as String?
         set(value) = this.setProperty("id_card_prices", value)
+    var ctripId: String?
+        get() = this.getProperty("ctrip_id") as String?
+        set(value) = this.setProperty("ctrip_id", value)
 
     fun getTicketCustomDataPrices(): List<TicketDatePrice> {
         val cps = customPrices
