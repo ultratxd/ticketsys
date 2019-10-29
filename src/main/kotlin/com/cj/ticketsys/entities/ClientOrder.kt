@@ -2,7 +2,7 @@ package com.cj.ticketsys.entities
 
 import java.util.*
 
-class ClientOrder {
+open class ClientOrder: PropertyEntity() {
     var id:Int = 0
     var clientId:Int = 0
     var cloudId:String? = null
