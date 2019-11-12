@@ -28,4 +28,7 @@ class GateLogReqBody {
     var inPasses:Int = 0
     @JsonProperty("out_passes")
     var outPasses:Int = 0
+
+    @JsonProperty("properties")
+    var properties:String? = null;
 }

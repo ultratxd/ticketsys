@@ -10,7 +10,8 @@ server:
 spring:
   datasource:
     name: mydb
-    url: jdbc:mysql://172.28.3.45:20010/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+#    url: jdbc:mysql://172.28.3.45:20010/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+    url: jdbc:mysql://172.28.3.25:33306/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
@@ -44,17 +45,23 @@ spring:
     so-timeout: 6000
     timeout: 6000
     max-attempts: 6
-    host: localhost
+#    host: localhost
+    host: 172.28.3.25
     port: 6379
 
   rabbitmq:
-    host: 172.28.3.45
-    username: test
-    password: test
+#    host: 172.28.3.45
+#    username: test
+#    password: test
+    host: 172.28.3.25
+    port: 5672
+    username: guest
+    password: guest
+
 
 
 weedfs:
-  host: 172.28.3.45
+  host: 172.28.3.25
   port: 9333
 
 b2b:

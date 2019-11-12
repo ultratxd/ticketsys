@@ -18,4 +18,5 @@ open class ClientSubOrder: PropertyEntity() {
     var prints:Int = 0
     var useDate:Int = 0
     var enterTime:Int = 0
+    var clientParentId:Int = 0
 }
