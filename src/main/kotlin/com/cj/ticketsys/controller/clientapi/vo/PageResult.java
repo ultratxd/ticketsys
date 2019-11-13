@@ -12,9 +12,18 @@ import java.util.List;
 
 @Data
 public class PageResult<T> {
-    private Long total;  //总条数
-    private Integer totalPage;  //总页数
-    private List<T> items;   //分页数据
+    /**
+     * 数据总条数
+     */
+    private Long total;
+    /**
+     * 总页码数
+     */
+    private Integer totalPage;
+    /**
+     * 分页数据
+     */
+    private List<T> items;
 
     public PageResult() {
     }

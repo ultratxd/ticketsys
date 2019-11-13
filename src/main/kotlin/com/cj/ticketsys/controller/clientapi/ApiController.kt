@@ -145,7 +145,7 @@ class ApiController {
             page_num: Int,
             page_size: Int
     ): Boolean {
-        return page_num > 0 && page_size > 0;
+        return page_num > 0 && page_size > 0
     }
 
 

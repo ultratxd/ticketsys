@@ -42,7 +42,7 @@ class ClientSvcImpl : ClientSvc {
         val log = createClientGateLog(gLog)
         log.scanDate = gLog.scanDate
 
-        val c = dataDao.insertGateLog(log);
+        val c = dataDao.insertGateLog(log)
         if (c > 0) {
             return Result(RESULT_SUCCESS, "ok")
         }
@@ -56,7 +56,7 @@ class ClientSvcImpl : ClientSvc {
     @Transactional(rollbackFor = [Exception::class])
     override fun insertClientOrder(orderBody: OrderReqBody): Result {
         val order = createClientOrder(orderBody)
-        order.createTime = orderBody.createTime;
+        order.createTime = orderBody.createTime
 
         //插入主订单
         val c = dataDao.insertOrder(order)
@@ -64,7 +64,7 @@ class ClientSvcImpl : ClientSvc {
             return Result(RESULT_FAIL, "fail")
         }
 
-        val subOrders = orderBody.subOrders;
+        val subOrders = orderBody.subOrders
         //如果subOrders不为空，插入所有subOrders
         if (!subOrders.isNullOrEmpty()) {
             for (subOrder in subOrders) {
@@ -105,7 +105,7 @@ class ClientSvcImpl : ClientSvc {
     override fun updateClientGateLog(gLog: GateLogReqBody): Result {
         val log = createClientGateLog(gLog)
 
-        val c = dataDao.updateGateLog(log);
+        val c = dataDao.updateGateLog(log)
         if (c > 0) {
             return Result(RESULT_SUCCESS, "ok")
         }
@@ -125,7 +125,7 @@ class ClientSvcImpl : ClientSvc {
             return Result(RESULT_FAIL, "fail")
         }
 
-        val subOrders = orderBody.subOrders;
+        val subOrders = orderBody.subOrders
         if (!subOrders.isNullOrEmpty()) {
             //如果subOrders不为空，插入所有subOrders
             for (subOrder in subOrders) {
@@ -167,11 +167,11 @@ class ClientSvcImpl : ClientSvc {
      */
     override fun getClientGateLogs(page_num: Int, page_size: Int): ResultT<PageResult<ClientGateLog>> {
         //开启分页
-        PageHelper.startPage<ClientGateLog>(page_num, page_size);
+        PageHelper.startPage<ClientGateLog>(page_num, page_size)
         //查询所有gateLogs数据
         val clientGateLogs = dataDao.selectGateLogList()
         //封装数据到分页助手中
-        val pageInfo = PageInfo<ClientGateLog>(clientGateLogs);
+        val pageInfo = PageInfo<ClientGateLog>(clientGateLogs)
         val pageResult = PageResult<ClientGateLog>(pageInfo.total, pageInfo.pages, clientGateLogs)
         //返回分页数据
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
@@ -183,20 +183,20 @@ class ClientSvcImpl : ClientSvc {
      */
     override fun getClientOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientOrderDto>> {
         //开启分页
-        PageHelper.startPage<ClientOrder>(page_num, page_size);
+        PageHelper.startPage<ClientOrder>(page_num, page_size)
         //查询所有gateLogs数据
         val clientOrders = dataDao.selectClientOrderList()
         //拷贝数据到ClientOrdersDto中
-        val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错");
+        val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
         //将子订单的数据封装到dto中
         for (order in clientOrdersDtos) {
             //根据pId查询子订单，并将其封装到dto中
             val id = order.clientId
             val subOrders = dataDao.selectByPid(id)
-            order.childrens = subOrders;
+            order.childrens = subOrders
         }
         //封装数据到分页助手中
-        val pageInfo = PageInfo<ClientOrderDto>(clientOrdersDtos);
+        val pageInfo = PageInfo<ClientOrderDto>(clientOrdersDtos)
         val pageResult = PageResult<ClientOrderDto>(pageInfo.total, pageInfo.pages, clientOrdersDtos)
         //返回分页数据
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
@@ -208,11 +208,11 @@ class ClientSvcImpl : ClientSvc {
      */
     override fun getClientSubOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientSubOrder>> {
         //开启分页
-        PageHelper.startPage<ClientSubOrder>(page_num, page_size);
+        PageHelper.startPage<ClientSubOrder>(page_num, page_size)
         //查询所有gateLogs数据
-        val clientSubOrders = dataDao.selectSubOrderList();
+        val clientSubOrders = dataDao.selectSubOrderList()
         //封装数据到分页助手中
-        val pageInfo = PageInfo<ClientSubOrder>(clientSubOrders);
+        val pageInfo = PageInfo<ClientSubOrder>(clientSubOrders)
         val pageResult = PageResult<ClientSubOrder>(pageInfo.total, pageInfo.pages, clientSubOrders)
         //返回分页数据
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
@@ -221,18 +221,16 @@ class ClientSvcImpl : ClientSvc {
 
     private fun insertSubOrder(subOrderBody: SubOrderReqBody): Long {
         val subOrder = createClientSubOrder(subOrderBody)
-        subOrder.createTime = subOrderBody.createTime;
+        subOrder.createTime = subOrderBody.createTime
 
-        val c = dataDao.insertSubOrder(subOrder);
-        return c
+        return dataDao.insertSubOrder(subOrder)
     }
 
     private fun updateSubOrder(subOrderBody: SubOrderReqBody): Long {
 
         val subOrder = createClientSubOrder(subOrderBody)
 
-        val c = dataDao.updateSubOrder(subOrder);
-        return c
+        return dataDao.updateSubOrder(subOrder)
     }
 
     private fun createClientGateLog(gLog: GateLogReqBody): ClientGateLog {
@@ -254,45 +252,45 @@ class ClientSvcImpl : ClientSvc {
 
     private fun createClientOrder(orderBody: OrderReqBody): ClientOrder {
         val order = ClientOrder()
-        order.clientId = orderBody.clientId;
-        order.cloudId = orderBody.cloudId;
-        order.clientOrderNo = orderBody.clientOrderNo;
-        order.nums = orderBody.nums;
-        order.orderType = orderBody.orderType;
-        order.amount = orderBody.amount;
-        order.perNums = orderBody.perNums;
-        order.state = orderBody.state;
-        order.payType = orderBody.payType;
-        order.realPay = orderBody.realPay;
-        order.changePay = orderBody.changePay;
-        order.shouldPay = orderBody.shouldPay;
-        order.exCode = orderBody.exCode;
-        order.remark = orderBody.remark;
-        order.saleClientNo = orderBody.saleClientNo;
-        order.ext1 = orderBody.ext1;
-        order.ext2 = orderBody.ext2;
-        order.ext3 = orderBody.ext3;
+        order.clientId = orderBody.clientId
+        order.cloudId = orderBody.cloudId
+        order.clientOrderNo = orderBody.clientOrderNo
+        order.nums = orderBody.nums
+        order.orderType = orderBody.orderType
+        order.amount = orderBody.amount
+        order.perNums = orderBody.perNums
+        order.state = orderBody.state
+        order.payType = orderBody.payType
+        order.realPay = orderBody.realPay
+        order.changePay = orderBody.changePay
+        order.shouldPay = orderBody.shouldPay
+        order.exCode = orderBody.exCode
+        order.remark = orderBody.remark
+        order.saleClientNo = orderBody.saleClientNo
+        order.ext1 = orderBody.ext1
+        order.ext2 = orderBody.ext2
+        order.ext3 = orderBody.ext3
         order.properties = orderBody.properties
         return order
     }
 
     private fun createClientSubOrder(subOrderBody: SubOrderReqBody): ClientSubOrder {
-        val subOrder = ClientSubOrder();
-        subOrder.clientId = subOrderBody.clientId;
-        subOrder.cloudId = subOrderBody.cloudId;
-        subOrder.clientOrderNo = subOrderBody.clientOrderNo;
-        subOrder.orderType = subOrderBody.orderType;
-        subOrder.ticketId = subOrderBody.ticketId;
-        subOrder.ticketName = subOrderBody.ticketName;
-        subOrder.amount = subOrderBody.amount;
-        subOrder.unitPrice = subOrderBody.unitPrice;
-        subOrder.nums = subOrderBody.nums;
-        subOrder.perNums = subOrderBody.perNums;
-        subOrder.prints = subOrderBody.prints;
-        subOrder.useDate = subOrderBody.useDate;
-        subOrder.enterTime = subOrderBody.enterTime;
-        subOrder.clientParentId = subOrderBody.clientParentId;
-        subOrder.properties = subOrderBody.properties;
+        val subOrder = ClientSubOrder()
+        subOrder.clientId = subOrderBody.clientId
+        subOrder.cloudId = subOrderBody.cloudId
+        subOrder.clientOrderNo = subOrderBody.clientOrderNo
+        subOrder.orderType = subOrderBody.orderType
+        subOrder.ticketId = subOrderBody.ticketId
+        subOrder.ticketName = subOrderBody.ticketName
+        subOrder.amount = subOrderBody.amount
+        subOrder.unitPrice = subOrderBody.unitPrice
+        subOrder.nums = subOrderBody.nums
+        subOrder.perNums = subOrderBody.perNums
+        subOrder.prints = subOrderBody.prints
+        subOrder.useDate = subOrderBody.useDate
+        subOrder.enterTime = subOrderBody.enterTime
+        subOrder.clientParentId = subOrderBody.clientParentId
+        subOrder.properties = subOrderBody.properties
         return subOrder
     }
 

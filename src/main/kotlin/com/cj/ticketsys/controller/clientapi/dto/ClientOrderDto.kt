@@ -25,6 +25,6 @@ open class ClientOrderDto {
     var ext1: String? = null
     var ext2: String? = null
     var ext3: String? = null
-    var properties: String? = null
+    var properties: String? = ""
     var childrens: List<ClientSubOrder>? = null
 }
