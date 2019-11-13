@@ -10,6 +10,11 @@ import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.entities.ClientGateLog
 import com.cj.ticketsys.entities.ClientSubOrder
 
+/**
+ *  @author wangliwei
+ *  @date 2019/11/12
+ *
+ */
 interface ClientSvc {
     fun insertClientGareLog(gLog: GateLogReqBody): Result
     fun insertClientOrder(orderBody: OrderReqBody): Result

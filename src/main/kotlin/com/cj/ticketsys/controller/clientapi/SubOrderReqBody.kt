@@ -34,4 +34,6 @@ open class SubOrderReqBody {
     var enterTime:Int = 0
     @JsonProperty("client_parentId")
     var clientParentId:Int = 0
+    @JsonProperty("properties")
+    var properties:String? = "";
 }

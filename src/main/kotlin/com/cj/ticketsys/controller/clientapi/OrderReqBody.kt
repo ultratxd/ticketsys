@@ -43,6 +43,9 @@ class OrderReqBody {
     @JsonProperty("ex3")
     var ext3:String? = null
 
+    @JsonProperty("properties")
+    var properties:String? = "";
+
     @JsonProperty("subOrders")
     var subOrders: List<SubOrderReqBody>? = null
 }

@@ -20,7 +20,14 @@ import com.github.pagehelper.PageInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 
+/**
+ *  @author wangliwei
+ *  @date 2019/11/12
+ *
+ *  ClientApi服务层实现
+ */
 @Service
 class ClientSvcImpl : ClientSvc {
 
@@ -32,19 +39,8 @@ class ClientSvcImpl : ClientSvc {
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun insertClientGareLog(gLog: GateLogReqBody): Result {
-        val log = ClientGateLog()
-        log.clientId = gLog.clientId
-        log.clientOrderNo = gLog.clientOrderNo
-        log.clientOrderSid = gLog.clientOrderSid
-        log.code = gLog.code
-        log.cType = gLog.cType
+        val log = createClientGateLog(gLog)
         log.scanDate = gLog.scanDate
-        log.scanTime = gLog.scanTime
-        log.inTime = gLog.inTime
-        log.outTime = gLog.outTime
-        log.perNums = gLog.perNums
-        log.inPasses = gLog.inPasses
-        log.outPasses = gLog.outPasses
 
         val c = dataDao.insertGateLog(log);
         if (c > 0) {
@@ -53,31 +49,15 @@ class ClientSvcImpl : ClientSvc {
         return Result(RESULT_FAIL, "fail")
     }
 
+
     /**
      * 插入ClientOrder
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun insertClientOrder(orderBody: OrderReqBody): Result {
-        val order = ClientOrder()
-        order.clientId = orderBody.clientId;
-        order.cloudId = orderBody.cloudId;
-        order.clientOrderNo = orderBody.clientOrderNo;
-        order.nums = orderBody.nums;
-        order.orderType = orderBody.orderType;
-        order.amount = orderBody.amount;
-        order.perNums = orderBody.perNums;
+        val order = createClientOrder(orderBody)
         order.createTime = orderBody.createTime;
-        order.state = orderBody.state;
-        order.payType = orderBody.payType;
-        order.realPay = orderBody.realPay;
-        order.changePay = orderBody.changePay;
-        order.shouldPay = orderBody.shouldPay;
-        order.exCode = orderBody.exCode;
-        order.remark = orderBody.remark;
-        order.saleClientNo = orderBody.saleClientNo;
-        order.ext1 = orderBody.ext1;
-        order.ext2 = orderBody.ext2;
-        order.ext3 = orderBody.ext3;
+
         //插入主订单
         val c = dataDao.insertOrder(order)
         if (c <= 0) {
@@ -86,10 +66,16 @@ class ClientSvcImpl : ClientSvc {
 
         val subOrders = orderBody.subOrders;
         //如果subOrders不为空，插入所有subOrders
-        if (subOrders != null) {
+        if (!subOrders.isNullOrEmpty()) {
             for (subOrder in subOrders) {
+                //校验子订单的pid是否等于父订单的cid
+                if (subOrder.clientParentId != order.clientId) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+                    return Result(RESULT_FAIL, "fail")
+                }
                 val d = insertSubOrder(subOrder)
                 if (d <= 0) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return Result(RESULT_FAIL, "fail")
                 }
             }
@@ -97,6 +83,7 @@ class ClientSvcImpl : ClientSvc {
 
         return Result(RESULT_SUCCESS, "ok")
     }
+
 
     /**
      * 插入ClientSubOrder
@@ -110,46 +97,13 @@ class ClientSvcImpl : ClientSvc {
         return Result(RESULT_FAIL, "fail")
     }
 
-    private fun insertSubOrder(subOrderBody: SubOrderReqBody): Long {
-        val subOrder = ClientSubOrder();
-        subOrder.clientId = subOrderBody.clientId;
-        subOrder.cloudId = subOrderBody.cloudId;
-        subOrder.clientOrderNo = subOrderBody.clientOrderNo;
-        subOrder.orderType = subOrderBody.orderType;
-        subOrder.ticketId = subOrderBody.ticketId;
-        subOrder.ticketName = subOrderBody.ticketName;
-        subOrder.amount = subOrderBody.amount;
-        subOrder.unitPrice = subOrderBody.unitPrice;
-        subOrder.nums = subOrderBody.nums;
-        subOrder.perNums = subOrderBody.perNums;
-        subOrder.createTime = subOrderBody.createTime;
-        subOrder.prints = subOrderBody.prints;
-        subOrder.useDate = subOrderBody.useDate;
-        subOrder.enterTime = subOrderBody.enterTime;
-        subOrder.clientParentId = subOrderBody.clientParentId;
-
-        val c = dataDao.insertSubOrder(subOrder);
-        return c
-    }
 
     /**
      * 更新ClientGateLog
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun updateClientGateLog(gLog: GateLogReqBody): Result {
-        val log = ClientGateLog()
-        log.clientId = gLog.clientId
-        log.clientOrderNo = gLog.clientOrderNo
-        log.clientOrderSid = gLog.clientOrderSid
-        log.code = gLog.code
-        log.cType = gLog.cType
-        log.scanTime = gLog.scanTime
-        log.inTime = gLog.inTime
-        log.outTime = gLog.outTime
-        log.perNums = gLog.perNums
-        log.inPasses = gLog.inPasses
-        log.outPasses = gLog.outPasses
-        log.properties =gLog.properties
+        val log = createClientGateLog(gLog)
 
         val c = dataDao.updateGateLog(log);
         if (c > 0) {
@@ -158,30 +112,13 @@ class ClientSvcImpl : ClientSvc {
         return Result(RESULT_FAIL, "fail")
     }
 
+
     /**
      * 更新ClientOrder
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun updateClientOrder(orderBody: OrderReqBody): Result {
-        val order = ClientOrder()
-        order.clientId = orderBody.clientId;
-        order.cloudId = orderBody.cloudId;
-        order.clientOrderNo = orderBody.clientOrderNo;
-        order.nums = orderBody.nums;
-        order.orderType = orderBody.orderType;
-        order.amount = orderBody.amount;
-        order.perNums = orderBody.perNums;
-        order.state = orderBody.state;
-        order.payType = orderBody.payType;
-        order.realPay = orderBody.realPay;
-        order.changePay = orderBody.changePay;
-        order.shouldPay = orderBody.shouldPay;
-        order.exCode = orderBody.exCode;
-        order.remark = orderBody.remark;
-        order.saleClientNo = orderBody.saleClientNo;
-        order.ext1 = orderBody.ext1;
-        order.ext2 = orderBody.ext2;
-        order.ext3 = orderBody.ext3;
+        val order = createClientOrder(orderBody)
 
         val c = dataDao.updateOrder(order)
         if (c <= 0) {
@@ -189,24 +126,34 @@ class ClientSvcImpl : ClientSvc {
         }
 
         val subOrders = orderBody.subOrders;
-        //如果subOrders不为空，插入所有subOrders
-        if (subOrders != null) {
+        if (!subOrders.isNullOrEmpty()) {
+            //如果subOrders不为空，插入所有subOrders
             for (subOrder in subOrders) {
+                //校验子订单的pid是否等于父订单的cid
+                if (subOrder.clientParentId != order.clientId) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+                    return Result(RESULT_FAIL, "fail")
+                }
                 val d = updateSubOrder(subOrder)
                 if (d <= 0) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return Result(RESULT_FAIL, "fail")
                 }
             }
         }
-
         return Result(RESULT_SUCCESS, "ok")
     }
+
 
     /**
      * 更新ClientSubOrder
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result {
+        //如果子订单要修改的pid不为空，校验是否存在对应的父订单cid
+        if (subOrderBody.clientParentId != 0) {
+            dataDao.selectByCid(subOrderBody.clientParentId) ?: return Result(RESULT_FAIL, "对应父订单不存在")
+        }
         val c = updateSubOrder(subOrderBody)
         if (c > 0) {
             return Result(RESULT_SUCCESS, "ok")
@@ -214,26 +161,6 @@ class ClientSvcImpl : ClientSvc {
         return Result(RESULT_FAIL, "fail")
     }
 
-    private fun updateSubOrder(subOrderBody: SubOrderReqBody): Long {
-        val subOrder = ClientSubOrder();
-        subOrderBody.clientId = subOrder.clientId;
-        subOrderBody.cloudId = subOrder.cloudId;
-        subOrderBody.clientOrderNo = subOrder.clientOrderNo;
-        subOrderBody.orderType = subOrder.orderType;
-        subOrderBody.ticketId = subOrder.ticketId;
-        subOrderBody.ticketName = subOrder.ticketName;
-        subOrderBody.amount = subOrder.amount;
-        subOrderBody.unitPrice = subOrder.unitPrice;
-        subOrderBody.nums = subOrder.nums;
-        subOrderBody.perNums = subOrder.perNums;
-        subOrderBody.prints = subOrder.prints;
-        subOrderBody.useDate = subOrder.useDate;
-        subOrderBody.enterTime = subOrder.enterTime;
-        subOrderBody.clientParentId = subOrder.clientParentId;
-
-        val c = dataDao.updateSubOrder(subOrder);
-        return c
-    }
 
     /**
      * 分页查询ClientGateLogs
@@ -249,6 +176,7 @@ class ClientSvcImpl : ClientSvc {
         //返回分页数据
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
     }
+
 
     /**
      * 分页查询ClientOrders
@@ -274,6 +202,7 @@ class ClientSvcImpl : ClientSvc {
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
     }
 
+
     /**
      * 分页查询ClientSubOrders
      */
@@ -287,6 +216,84 @@ class ClientSvcImpl : ClientSvc {
         val pageResult = PageResult<ClientSubOrder>(pageInfo.total, pageInfo.pages, clientSubOrders)
         //返回分页数据
         return ResultT(RESULT_SUCCESS, "ok", pageResult)
+    }
+
+
+    private fun insertSubOrder(subOrderBody: SubOrderReqBody): Long {
+        val subOrder = createClientSubOrder(subOrderBody)
+        subOrder.createTime = subOrderBody.createTime;
+
+        val c = dataDao.insertSubOrder(subOrder);
+        return c
+    }
+
+    private fun updateSubOrder(subOrderBody: SubOrderReqBody): Long {
+
+        val subOrder = createClientSubOrder(subOrderBody)
+
+        val c = dataDao.updateSubOrder(subOrder);
+        return c
+    }
+
+    private fun createClientGateLog(gLog: GateLogReqBody): ClientGateLog {
+        val log = ClientGateLog()
+        log.clientId = gLog.clientId
+        log.clientOrderNo = gLog.clientOrderNo
+        log.clientOrderSid = gLog.clientOrderSid
+        log.code = gLog.code
+        log.cType = gLog.cType
+        log.scanTime = gLog.scanTime
+        log.inTime = gLog.inTime
+        log.outTime = gLog.outTime
+        log.perNums = gLog.perNums
+        log.inPasses = gLog.inPasses
+        log.outPasses = gLog.outPasses
+        log.properties = gLog.properties
+        return log
+    }
+
+    private fun createClientOrder(orderBody: OrderReqBody): ClientOrder {
+        val order = ClientOrder()
+        order.clientId = orderBody.clientId;
+        order.cloudId = orderBody.cloudId;
+        order.clientOrderNo = orderBody.clientOrderNo;
+        order.nums = orderBody.nums;
+        order.orderType = orderBody.orderType;
+        order.amount = orderBody.amount;
+        order.perNums = orderBody.perNums;
+        order.state = orderBody.state;
+        order.payType = orderBody.payType;
+        order.realPay = orderBody.realPay;
+        order.changePay = orderBody.changePay;
+        order.shouldPay = orderBody.shouldPay;
+        order.exCode = orderBody.exCode;
+        order.remark = orderBody.remark;
+        order.saleClientNo = orderBody.saleClientNo;
+        order.ext1 = orderBody.ext1;
+        order.ext2 = orderBody.ext2;
+        order.ext3 = orderBody.ext3;
+        order.properties = orderBody.properties
+        return order
+    }
+
+    private fun createClientSubOrder(subOrderBody: SubOrderReqBody): ClientSubOrder {
+        val subOrder = ClientSubOrder();
+        subOrder.clientId = subOrderBody.clientId;
+        subOrder.cloudId = subOrderBody.cloudId;
+        subOrder.clientOrderNo = subOrderBody.clientOrderNo;
+        subOrder.orderType = subOrderBody.orderType;
+        subOrder.ticketId = subOrderBody.ticketId;
+        subOrder.ticketName = subOrderBody.ticketName;
+        subOrder.amount = subOrderBody.amount;
+        subOrder.unitPrice = subOrderBody.unitPrice;
+        subOrder.nums = subOrderBody.nums;
+        subOrder.perNums = subOrderBody.perNums;
+        subOrder.prints = subOrderBody.prints;
+        subOrder.useDate = subOrderBody.useDate;
+        subOrder.enterTime = subOrderBody.enterTime;
+        subOrder.clientParentId = subOrderBody.clientParentId;
+        subOrder.properties = subOrderBody.properties;
+        return subOrder
     }
 
 }

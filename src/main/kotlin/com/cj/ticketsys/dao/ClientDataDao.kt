@@ -60,7 +60,7 @@ interface ClientDataDao {
                     "<if test=\"perNums !=0\">, per_nums=#{perNums}</if>" +
                     "<if test=\"inPasses !=0\">, in_passes=#{inPasses}</if>" +
                     "<if test=\"outPasses !=0\">, out_passes=#{outPasses}</if>" +
-                    "<if test=\"properties !=null\">, properties=#{properties}</if>" +
+                    "<if test=\"properties !=''\">, properties=#{properties}</if>" +
                     "</set> " +
                     " where c_id = #{clientId} " +
             "</script>"
@@ -92,7 +92,7 @@ interface ClientDataDao {
                     "<if test=\"ext1 !=null\">,ext1=#{ext1}</if>" +
                     "<if test=\"ext2 !=null\">,ext2=#{ext2}</if>" +
                     "<if test=\"ext3 !=null\">,ext3=#{ext3}</if>" +
-                    "<if test=\"properties !=null\">,properties=#{properties}</if>" +
+                    "<if test=\"properties !=''\">,properties=#{properties}</if>" +
                     "</set>" +
                     " where c_id=#{clientId}" +
             "</script>"
@@ -119,9 +119,9 @@ interface ClientDataDao {
                     "<if test=\"useDate !=0\">,use_date=#{useDate}</if>" +
                     "<if test=\"enterTime !=0\">,enter_time=#{enterTime}</if>" +
                     "<if test=\"clientParentId !=0\">,c_pid=#{clientParentId}</if>" +
-                    "<if test=\"properties !=null\">,properties=#{properties}</if>" +
+                    "<if test=\"properties !=''\">,properties=#{properties}</if>" +
                     "</set>" +
-                    " where c_id=#{clientId}" +
+                    " where c_id = #{clientId}" +
                     "</script>"
     )
     fun updateSubOrder(subOrder: ClientSubOrder): Long
@@ -196,5 +196,27 @@ interface ClientDataDao {
             Result(column = "c_pid", property = "clientParentId")
     )
     fun selectSubOrderList(): MutableList<ClientSubOrder>
+
+    @Update(
+            "<script>" +
+                    "update client_suborders " +
+                    "<set>" +
+                    "<if test=\"pid !=0\">,c_pid=#{pid}</if>" +
+                    "</set>" +
+                    " where id = #{id}" +
+                    "</script>"
+    )
+    fun updatePid(@Param("id")id: Int,@Param("pid")pid: Int): Long
+
+    @Select(
+            "<script>" +
+                    "select id,c_id,cloud_id,c_order_no,nums,order_type,amount,per_nums,create_time,state,pay_type,real_pay,change_pay,should_pay,excode,remark,sale_client_no,ext1,ext2,ext3,properties from client_orders where c_id=#{cid}" +
+            "</script>"
+    )
+    @Results(
+            Result(column = "c_id", property = "clientId"),
+            Result(column = "c_order_no", property = "clientOrderNo")
+    )
+    fun selectByCid(@Param("cid")clientParentId: Int): ClientOrder?
 
 }
