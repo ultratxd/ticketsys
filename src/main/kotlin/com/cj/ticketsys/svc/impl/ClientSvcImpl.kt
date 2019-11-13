@@ -90,6 +90,11 @@ class ClientSvcImpl : ClientSvc {
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun insertClientSubOrder(subOrderBody: SubOrderReqBody): Result {
+        //如果子订单要修改的pid不为空，校验是否存在对应的父订单cid
+        if (subOrderBody.clientParentId != 0) {
+            dataDao.selectByCid(subOrderBody.clientParentId) ?: return Result(RESULT_FAIL, "对应父订单不存在")
+        }
+
         val c = insertSubOrder(subOrderBody)
         if (c > 0) {
             return Result(RESULT_SUCCESS, "ok")
@@ -127,7 +132,7 @@ class ClientSvcImpl : ClientSvc {
 
         val subOrders = orderBody.subOrders
         if (!subOrders.isNullOrEmpty()) {
-            //如果subOrders不为空，插入所有subOrders
+            //如果subOrders不为空，更新所有subOrders
             for (subOrder in subOrders) {
                 //校验子订单的pid是否等于父订单的cid
                 if (subOrder.clientParentId != order.clientId) {
@@ -150,7 +155,7 @@ class ClientSvcImpl : ClientSvc {
      */
     @Transactional(rollbackFor = [Exception::class])
     override fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result {
-        //如果子订单要修改的pid不为空，校验是否存在对应的父订单cid
+        //校验子订单的pid否存在对应的父订单cid
         if (subOrderBody.clientParentId != 0) {
             dataDao.selectByCid(subOrderBody.clientParentId) ?: return Result(RESULT_FAIL, "对应父订单不存在")
         }
