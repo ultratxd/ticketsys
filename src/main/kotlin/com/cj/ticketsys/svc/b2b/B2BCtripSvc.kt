@@ -3,8 +3,11 @@ package com.cj.ticketsys.svc.b2b
 import com.alibaba.druid.util.Utils.md5
 import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.entities.ChannelTypes
+import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.TicketPrice
 import com.cj.ticketsys.svc.PriceBinder
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -12,6 +15,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Calendar
 import kotlin.collections.ArrayList
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 
 @Service
@@ -31,6 +38,11 @@ class B2BCtripSvc {
     @Value("\${b2b.ctrip.notifyUrl}")
     private lateinit var notifyUrl: String
 
+    val JsonMediaType  = "application/json; charset=utf-8".toMediaType()
+
+    /**
+     * 价格同步
+     */
     fun pushPrices(price: TicketPrice) {
         if (price.channelType != ChannelTypes.Ctrip || price.ctripId == null) {
             return
@@ -71,14 +83,78 @@ class B2BCtripSvc {
         ctripHeader.version = version
         ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
 
-        val ctripReqBody = CtripPriceRequest()
+        val ctripReqBody = CtripPriceRequest<CtripPriceBody>()
         ctripReqBody.header = ctripHeader
         ctripReqBody.body = ctripBody
 
+        val client = OkHttpClient()
+        val reqBody = JSON.toJSONString(ctripReqBody).toRequestBody(JsonMediaType)
+        val request = Request.Builder()
+                .url(notifyUrl)
+                .post(reqBody)
+                .build();
+        val resp = client.newCall(request).execute()
+        val respBody = resp.body.toString()
+        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        if(respResult.resultCode.equals("0000")) {
 
+        }
     }
 
-    fun pushStock() {
+    /**
+     * 库存同步
+     */
+    fun pushInventory(price: TicketPrice) {
+        if (price.channelType != ChannelTypes.Ctrip || price.ctripId == null) {
+            return
+        }
+        val tktId = price.tid
+        val cInventorys = ArrayList<CtripInventory>()
+        for (i in 0..30) {
+            val rightNow = Calendar.getInstance()
+            rightNow.time = Date()
+            rightNow.add(Calendar.DAY_OF_YEAR, i)//日期加1天
+            val dt = rightNow.time
+            val cp = CtripInventory()
+            val dateFmt = SimpleDateFormat("yyyy-MM-dd")
+            cp.date = dateFmt.format(dt)
+            cp.quantity = price.stocks
+            cInventorys.add(cp)
+            if (cInventorys.count() == 0) {
+                continue
+            }
+        }
+        val ctripBody = CtripInventoryBody()
+        ctripBody.otaOptionId = price.ctripId!!
+        ctripBody.sequenceId = makeSeqId()
+        ctripBody.inventorys = cInventorys
+
+        val ctripHeader = CtripHeader()
+        ctripHeader.accountId = accountId
+        ctripHeader.requestTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+        ctripHeader.serviceName = "DateInventoryModify"
+        ctripHeader.version = version
+        ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
+
+        val ctripReqBody = CtripPriceRequest<CtripInventoryBody>()
+        ctripReqBody.header = ctripHeader
+        ctripReqBody.body = ctripBody
+
+        val client = OkHttpClient()
+        val reqBody = JSON.toJSONString(ctripReqBody).toRequestBody(JsonMediaType)
+        val request = Request.Builder()
+                .url(notifyUrl)
+                .post(reqBody)
+                .build();
+        val resp = client.newCall(request).execute()
+        val respBody = resp.body.toString()
+        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        if(respResult.resultCode.equals("0000")) {
+
+        }
+    }
+
+    fun verifyOrder(order: Order) {
 
     }
 
@@ -126,7 +202,22 @@ class CtripPrice {
     var costPrice: Double = 0.0
 }
 
-class CtripPriceRequest {
+class CtripPriceRequest<T> {
     var header: CtripHeader? = null
-    var body: CtripPriceBody? = null
+    var body: T? = null
+}
+
+
+//Inventory
+
+class CtripInventory {
+    var date: String = ""
+    var quantity:Int = 0
+}
+
+class CtripInventoryBody {
+    var sequenceId: String = ""
+    var otaOptionId: String = ""
+    var supplierOptionId: String = ""
+    var inventorys: List<CtripInventory> = emptyList()
 }
