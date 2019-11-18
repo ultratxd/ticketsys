@@ -3,7 +3,7 @@ package com.cj.ticketsys.controller.clientapi
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
-class SubOrderReqBody {
+open class SubOrderReqBody {
     @JsonProperty("client_id")
     var clientId:Int = 0
     @JsonProperty("cloud_id")
@@ -32,4 +32,8 @@ class SubOrderReqBody {
     var useDate:Int = 0
     @JsonProperty("enter_time")
     var enterTime:Int = 0
+    @JsonProperty("client_parentId")
+    var clientParentId:Int = 0
+    @JsonProperty("properties")
+    var properties:String? = ""
 }
