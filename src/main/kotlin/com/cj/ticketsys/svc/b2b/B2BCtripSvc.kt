@@ -83,7 +83,7 @@ class B2BCtripSvc {
         ctripHeader.version = version
         ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
 
-        val ctripReqBody = CtripPriceRequest<CtripPriceBody>()
+        val ctripReqBody = CtripRequest<CtripPriceBody>()
         ctripReqBody.header = ctripHeader
         ctripReqBody.body = ctripBody
 
@@ -136,7 +136,7 @@ class B2BCtripSvc {
         ctripHeader.version = version
         ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
 
-        val ctripReqBody = CtripPriceRequest<CtripInventoryBody>()
+        val ctripReqBody = CtripRequest<CtripInventoryBody>()
         ctripReqBody.header = ctripHeader
         ctripReqBody.body = ctripBody
 
@@ -202,7 +202,7 @@ class CtripPrice {
     var costPrice: Double = 0.0
 }
 
-class CtripPriceRequest<T> {
+class CtripRequest<T> {
     var header: CtripHeader? = null
     var body: T? = null
 }

@@ -48,6 +48,12 @@ class TicketPrice : PropertyEntity() {
     var ctripId: String?
         get() = this.getProperty("ctrip_id") as String?
         set(value) = this.setProperty("ctrip_id", value)
+    var buyLimit: Int?
+        get() = this.getProperty("buy_limit") as Int?
+        set(value) = this.setProperty("buy_limit", value)
+    var BuyTime: Int?
+        get() = this.getProperty("buy_time") as Int?
+        set(value) = this.setProperty("buy_time", value)
 
     fun getTicketCustomDataPrices(): List<TicketDatePrice> {
         val cps = customPrices

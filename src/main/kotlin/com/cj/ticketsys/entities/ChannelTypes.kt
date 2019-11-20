@@ -10,7 +10,8 @@ enum class ChannelTypes(val value:Short) : CodeBaseEnum {
     TongCheng(7),
     MeiTuan(8),
     RackSpecial(9),
-    Team(10);
+    Team(10),
+    Menpiao123(11);
 
     override fun code(): Int {
         return this.value.toInt()
@@ -29,6 +30,7 @@ enum class ChannelTypes(val value:Short) : CodeBaseEnum {
                 8 -> return MeiTuan
                 9 -> return RackSpecial
                 10 -> return Team
+                11 -> return Menpiao123
             }
             throw IllegalArgumentException("value不存在枚举")
         }

@@ -311,6 +311,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("notice_remark", required = false) noticeRemark: String?,
         @RequestParam("custom_prices", required = false) customPrices: String?,
         @RequestParam("idcard_prices", required = false) idCardPrices: String?,
+        @RequestParam("buy_limit", required = false) buyLimit: Int?,
+        @RequestParam("buy_time", required = false) buyTime: Int?,
         req: HttpServletRequest
     ): com.cj.ticketsys.controller.dto.Result {
         if (tid == null || tid <= 0) {
@@ -359,6 +361,8 @@ class ManageTicketController : BaseController() {
         tp.remark = remark ?: ""
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
+        tp.buyLimit = buyLimit ?: 0
+        tp.BuyTime = buyTime ?: 0
 
         if (!Strings.isNullOrEmpty(customPrices)) {
             val checkOK = checkCustomPricesProperty(customPrices!!)
@@ -460,7 +464,9 @@ class ManageTicketController : BaseController() {
         @RequestParam("original_price", required = false) originalPrice: Double?,
         @RequestParam("notice_remark", required = false) noticeRemark: String?,
         @RequestParam("custom_prices", required = false) customPrices: String?,
-        @RequestParam("idcard_prices", required = false) idCardPrices: String?
+        @RequestParam("idcard_prices", required = false) idCardPrices: String?,
+        @RequestParam("buy_limit", required = false) buyLimit: Int?,
+        @RequestParam("buy_time", required = false) buyTime: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         if (id == null || id <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:id")
@@ -503,6 +509,8 @@ class ManageTicketController : BaseController() {
         tp.remark = remark ?: ""
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
+        tp.buyLimit = buyLimit ?: 0
+        tp.BuyTime = buyTime ?: 0
 
         if (!Strings.isNullOrEmpty(customPrices)) {
             val checkOK = checkCustomPricesProperty(customPrices!!)
