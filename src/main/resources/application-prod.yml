@@ -55,3 +55,12 @@ spring:
 weedfs:
   host: ${WEEDFS_HOST}
   port: ${WEEDFS_PORT}
+
+b2b:
+  ctrip:
+    accountId: 7507fc5918b2543e
+    secret: f917d8628cc31600ac16ffc5675f6026
+    version: 1.0
+    aesSecret: 518fa582544823a7
+    aesIVSecret: 4d67fa77f78da8fc
+    notifyUrl: https://ttdstp.ctrip.com/api/order/notice.do

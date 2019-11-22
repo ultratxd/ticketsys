@@ -362,7 +362,7 @@ class ManageTicketController : BaseController() {
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
         tp.buyLimit = buyLimit ?: 0
-        tp.BuyTime = buyTime ?: 0
+        tp.buyTime = buyTime ?: 0
 
         if (!Strings.isNullOrEmpty(customPrices)) {
             val checkOK = checkCustomPricesProperty(customPrices!!)
@@ -510,7 +510,7 @@ class ManageTicketController : BaseController() {
         tp.description = description ?: ""
         tp.noticeRemark = noticeRemark ?: ""
         tp.buyLimit = buyLimit ?: 0
-        tp.BuyTime = buyTime ?: 0
+        tp.buyTime = buyTime ?: 0
 
         if (!Strings.isNullOrEmpty(customPrices)) {
             val checkOK = checkCustomPricesProperty(customPrices!!)

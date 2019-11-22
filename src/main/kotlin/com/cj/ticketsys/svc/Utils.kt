@@ -13,6 +13,15 @@ object Utils {
         return Date.from(instant)
     }
 
+    fun zeroToNowSeconds(date:Date): Int {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        var minutes = calendar.get(Calendar.MINUTE)
+        var seconds = calendar.get(Calendar.SECOND)
+        return hour * 3600 + minutes * 60 + seconds
+    }
+
     fun dateToYYYYMMDDInt(date: Date): Int {
         val d = dateZoneFormat(date,"yyyyMMdd")
         return d.toInt()

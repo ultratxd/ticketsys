@@ -40,4 +40,8 @@ class MTicketPriceDto(val id: Int) {
     var customPrices: String? = null
     @JsonProperty("idcard_prices")
     var idCardPrices: String? = null
+    @JsonProperty("buy_limit")
+    var buyLimit: Int? = null
+    @JsonProperty("buy_time")
+    var buyTime: Int? = null
 }

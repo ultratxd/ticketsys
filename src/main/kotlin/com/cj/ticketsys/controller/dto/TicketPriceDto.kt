@@ -29,4 +29,9 @@ open class TicketPriceDto(@JsonProperty("id") val id: Int) {
     @JsonProperty("description")
     var description: String? = null
     var extra:MutableMap<String,Any> = TreeMap()
+
+    @JsonProperty("buy_limit")
+    var buyLimit: Int? = null
+    @JsonProperty("buy_time")
+    var buyTime: Int? = null
 }

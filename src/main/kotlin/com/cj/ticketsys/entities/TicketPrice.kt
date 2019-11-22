@@ -51,7 +51,7 @@ class TicketPrice : PropertyEntity() {
     var buyLimit: Int?
         get() = this.getProperty("buy_limit") as Int?
         set(value) = this.setProperty("buy_limit", value)
-    var BuyTime: Int?
+    var buyTime: Int?
         get() = this.getProperty("buy_time") as Int?
         set(value) = this.setProperty("buy_time", value)
 

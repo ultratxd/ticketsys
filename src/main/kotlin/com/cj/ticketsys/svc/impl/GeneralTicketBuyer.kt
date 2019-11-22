@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
 @Service
 class GeneralTicketBuyer : TicketBuyer {
@@ -62,8 +64,7 @@ class GeneralTicketBuyer : TicketBuyer {
                 order.scenicSpotId,
                 Utils.intToDate(bt.date),
                 order.partner!!.channelType
-            )
-                ?: return BuyResult("BUY:1003", "购买的票不存在")
+            ) ?: return BuyResult("BUY:1003", "购买的票不存在")
 
             val existPrice = ts.prices.stream().filter { t -> t.id == bt.ticketPriceId }.count()
             if (existPrice == 0L) {
@@ -73,6 +74,20 @@ class GeneralTicketBuyer : TicketBuyer {
             val surplus = inventoryManagement.surplus(price.id)
             if (surplus <= 0) {
                 return BuyResult("BUY:1006", "票已售罄")
+            }
+
+            //超时购买
+            if(price.buyTime != null && price.buyTime!! > 0 && bt.date == Utils.dateToYYYYMMDDInt(Date())) {
+                if(Utils.zeroToNowSeconds(Date()) > price.buyTime!!) {
+                    return BuyResult("BUY:1007", ticket.name + "的当日票已超过购买时间")
+                }
+            }
+            //超过数量
+            if(price.buyLimit != null && price.buyLimit!! > 0) {
+                val buyThisCount = subOrderDao.idCardAndTicketCount(bt.userCard,ticket.id)
+                if(bt.ticketNums + buyThisCount > price.buyLimit!!) {
+                    return BuyResult("BUY:1008", "购买" + ticket.name + "已超过个人购买数量")
+                }
             }
 
             val fPrice =  ts.prices.first { a->a.id == bt.ticketPriceId };
