@@ -44,7 +44,7 @@ class B2BCtripSvc {
      * 价格同步
      */
     fun pushPrices(price: TicketPrice) {
-        if (price.channelType != ChannelTypes.Ctrip || price.ctripId == null) {
+        if (price.channelType != ChannelTypes.Ctrip || price.b2bPLU == null) {
             return
         }
         val tktId = price.tid
@@ -72,7 +72,7 @@ class B2BCtripSvc {
         }
 
         val ctripBody = CtripPriceBody()
-        ctripBody.otaOptionId = price.ctripId!!
+        ctripBody.otaOptionId = price.b2bPLU!!
         ctripBody.sequenceId = makeSeqId()
         ctripBody.prices = cPrices
 
@@ -105,7 +105,7 @@ class B2BCtripSvc {
      * 库存同步
      */
     fun pushInventory(price: TicketPrice) {
-        if (price.channelType != ChannelTypes.Ctrip || price.ctripId == null) {
+        if (price.channelType != ChannelTypes.Ctrip || price.b2bPLU == null) {
             return
         }
         val tktId = price.tid
@@ -125,7 +125,7 @@ class B2BCtripSvc {
             }
         }
         val ctripBody = CtripInventoryBody()
-        ctripBody.otaOptionId = price.ctripId!!
+        ctripBody.otaOptionId = price.b2bPLU!!
         ctripBody.sequenceId = makeSeqId()
         ctripBody.inventorys = cInventorys
 
