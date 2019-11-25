@@ -1,6 +1,8 @@
 package com.cj.ticketsys.controller.b2b
 
+import com.cj.ticketsys.svc.TicketSvc
 import com.cj.ticketsys.svc.b2b.CtripRequest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -10,12 +12,21 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("/ota/v1/b2b/ctrip")
 class CtripOrderController {
+
+    @Autowired
+    private lateinit var ticketSvc: TicketSvc
+
     @PostMapping("/verify_order")
     fun verifyOrder(
             @RequestBody orderRequest: CtripRequest<CtripOrderItem>,
             req: HttpServletRequest
     ) {
-
+        val items = orderRequest.body?.items
+        if(items != null) {
+            for (item in items) {
+//                val prices = ticketSvc.getTicket()
+            }
+        }
     }
 
     @PostMapping("/new_order")

@@ -14,7 +14,8 @@ interface TicketPriceDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "stock_limit_type", property = "stockLimitType"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "refund_type", property = "refundType")
+        Result(column = "refund_type", property = "refundType"),
+        Result(column = "plu", property = "b2bPLU")
     )
     fun get(id: Int): TicketPrice?
 
@@ -27,7 +28,8 @@ interface TicketPriceDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "stock_limit_type", property = "stockLimitType"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "refund_type", property = "refundType")
+        Result(column = "refund_type", property = "refundType"),
+        Result(column = "plu", property = "b2bPLU")
     )
     fun gets(tid: Int): List<TicketPrice>
 
@@ -40,18 +42,19 @@ interface TicketPriceDao {
         Result(column = "create_time", property = "createTime"),
         Result(column = "stock_limit_type", property = "stockLimitType"),
         Result(column = "front_view", property = "frontView"),
-        Result(column = "refund_type", property = "refundType")
+        Result(column = "refund_type", property = "refundType"),
+        Result(column = "plu", property = "b2bPLU")
     )
     fun getsByChannelAndEnabled(channel: Int): List<TicketPrice>
 
     @Insert(
-        "insert into ticket_price(tid,usedate_id,channel_type,`name`,price,create_time,stocks,stock_limit_type,state,front_view,refund_type,properties) " +
-                "values(#{tid},#{useDateId},#{channelType},#{name},#{price},#{createTime},#{stocks},#{stockLimitType},#{state},#{frontView},#{refundType},#{properties})"
+        "insert into ticket_price(tid,usedate_id,channel_type,`name`,price,create_time,stocks,stock_limit_type,state,front_view,refund_type,properties,plu) " +
+                "values(#{tid},#{useDateId},#{channelType},#{name},#{price},#{createTime},#{stocks},#{stockLimitType},#{state},#{frontView},#{refundType},#{properties},#{b2bPLU})"
     )
     fun insert(price: TicketPrice): Long
 
     @Update(
-        "update ticket_price set tid=#{tid},usedate_id=#{useDateId},channel_type=#{channelType},`name`=#{name},price=#{price},stocks=#{stocks},stock_limit_type=#{stockLimitType},state=#{state},front_view=#{frontView},refund_type=#{refundType},properties=#{properties} " +
+        "update ticket_price set tid=#{tid},usedate_id=#{useDateId},channel_type=#{channelType},`name`=#{name},price=#{price},stocks=#{stocks},stock_limit_type=#{stockLimitType},state=#{state},front_view=#{frontView},refund_type=#{refundType},properties=#{properties},plu=#{b2bPLU} " +
                 "where id=#{id}"
     )
     fun update(ticket: TicketPrice): Long
