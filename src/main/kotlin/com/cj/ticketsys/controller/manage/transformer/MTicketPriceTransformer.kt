@@ -41,6 +41,7 @@ class MTicketPriceTransformer  : DocTransformer<TicketPrice, MTicketPriceDto> {
         dto.idCardPrices = data.idCardPrices
         dto.buyLimit = data.buyLimit
         dto.buyTime = data.buyTime
+        dto.b2bPLU = data.b2bPLU
 
 
         val useDate = useDateDao.get(data.useDateId)
