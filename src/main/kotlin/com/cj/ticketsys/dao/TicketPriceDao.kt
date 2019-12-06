@@ -1,5 +1,6 @@
 package com.cj.ticketsys.dao
 
+import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.TicketPrice
 import org.apache.ibatis.annotations.*
 
@@ -46,6 +47,20 @@ interface TicketPriceDao {
         Result(column = "plu", property = "b2bPLU")
     )
     fun getsByChannelAndEnabled(channel: Int): List<TicketPrice>
+
+    @Select(
+            "select * from ticket_price where state=1 and plu=#{plu} and channel_type=#{channel}"
+    )
+    @Results(
+            Result(column = "usedate_id", property = "useDateId"),
+            Result(column = "channel_type", property = "channelType"),
+            Result(column = "create_time", property = "createTime"),
+            Result(column = "stock_limit_type", property = "stockLimitType"),
+            Result(column = "front_view", property = "frontView"),
+            Result(column = "refund_type", property = "refundType"),
+            Result(column = "plu", property = "b2bPLU")
+    )
+    fun getByPLU(plu:String, channel: Int):TicketPrice?
 
     @Insert(
         "insert into ticket_price(tid,usedate_id,channel_type,`name`,price,create_time,stocks,stock_limit_type,state,front_view,refund_type,properties,plu) " +

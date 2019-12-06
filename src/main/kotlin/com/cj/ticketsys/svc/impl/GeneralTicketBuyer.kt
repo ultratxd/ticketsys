@@ -61,7 +61,6 @@ class GeneralTicketBuyer : TicketBuyer {
             val scenic = scenicSpotDao.get(order.scenicSpotId) ?: return BuyResult("BUY:1004", "景点不存在")
             val ts = ticketSvc.getTicket(
                 ticket.id,
-                order.scenicSpotId,
                 Utils.intToDate(bt.date),
                 order.partner!!.channelType
             ) ?: return BuyResult("BUY:1003", "购买的票不存在")

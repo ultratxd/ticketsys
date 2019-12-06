@@ -68,17 +68,26 @@ class OrderSvcImpl : OrderSvc {
                 inventoryManagement.decrSolds(subOrder.ticketId, subOrder.ticketPid, subOrder.nums)
                 subOrderDao.updateState(subOrder.id, OrderStates.Cancel)
             }
+            orderTicketCodeDao.update(orderNo,null,TicketCodeStates.Invalid)
         }
         return c > 0
     }
 
     @Transactional(rollbackFor = [Exception::class])
-    override fun completdEnter(orderNo: String, enterCode: String, provider: OrderTicketCodeProviders): Boolean {
+    override fun completedEnter(orderNo: String, enterCode: String, provider: OrderTicketCodeProviders): Boolean {
         val code = orderTicketCodeDao.getByCode(enterCode, provider) ?: return false
         if (code.orderId != orderNo) return false
         orderTicketCodeDao.update(orderNo, Date(), TicketCodeStates.Used)
         orderDao.updateState(orderNo, OrderStates.Used)
         subOrderDao.updateStateByOrderNo(orderNo, OrderStates.Used)
         return true
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    override fun modifyUseDate(subOrderId:Int, newUseDate:Date): Boolean {
+        val subOrder = subOrderDao.get(subOrderId) ?: return false
+        subOrder.useDate = newUseDate
+        val c = subOrderDao.update(subOrder)
+        return c > 0
     }
 }

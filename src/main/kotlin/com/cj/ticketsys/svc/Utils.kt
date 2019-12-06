@@ -1,5 +1,6 @@
 package com.cj.ticketsys.svc
 
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
@@ -31,5 +32,17 @@ object Utils {
         val format = SimpleDateFormat(fmt)
         format.timeZone = TimeZone.getTimeZone("Asia/Shanghai")
         return format.format(date)
+    }
+
+    fun stringToDate(date:String?, fmt:String):Date? {
+        if(date == null) {
+            return null
+        }
+        return try {
+            val format = SimpleDateFormat(fmt)
+            format.parse(date);
+        }catch(e:Exception) {
+            null
+        }
     }
 }

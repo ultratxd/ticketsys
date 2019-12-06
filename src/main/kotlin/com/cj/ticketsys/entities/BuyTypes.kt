@@ -4,7 +4,8 @@ enum class BuyTypes (val value:Short) : CodeBaseEnum {
     Online(0),
     Offline(1),
     Activity(2),
-    Seckill(3);
+    Seckill(3),
+    B2B(4);
 
     override fun code(): Int {
         return this.value.toInt()
@@ -17,6 +18,7 @@ enum class BuyTypes (val value:Short) : CodeBaseEnum {
                 1.toShort() -> return Offline
                 2.toShort() -> return Activity
                 3.toShort() -> return Seckill
+                4.toShort() -> return B2B
             }
             throw IllegalArgumentException("value不存在枚举")
         }

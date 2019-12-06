@@ -7,6 +7,7 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
     Issued(18),
     ReadyRefund(20),
     Refunded(30),
+    RefundedPart(31),
     Used(40),
     Cancel(50),
     Closed(99);
@@ -24,6 +25,7 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
                 18 -> return Issued
                 20 -> return ReadyRefund
                 30 -> return Refunded
+                31 -> return RefundedPart
                 40 -> return Used
                 50 -> return Cancel
                 99 -> return Closed

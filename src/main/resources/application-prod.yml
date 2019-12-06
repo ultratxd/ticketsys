@@ -64,3 +64,4 @@ b2b:
     aesSecret: 518fa582544823a7
     aesIVSecret: 4d67fa77f78da8fc
     notifyUrl: https://ttdstp.ctrip.com/api/order/notice.do
+    momoSoptId: 1

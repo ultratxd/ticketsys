@@ -44,7 +44,7 @@ class TicketSvcImpl : TicketSvc {
     private lateinit var priceBinder: PriceBinder
 
 
-    override fun getTicket(ticketId: Int, scenicSid: Int, date: Date, channelType: ChannelTypes): Ticket? {
+    override fun getTicket(ticketId: Int, date: Date, channelType: ChannelTypes): Ticket? {
 
         val ticket = ticketDao.get(ticketId) ?: return null
         priceBinder.bind(ticket, channelType, date)

@@ -32,7 +32,7 @@ class ThirdCallbackController : BaseController() {
             ret.responseHead = NoticeResultHead("5004", "")
             return ret
         }
-        val ok = orderSvc.completdEnter(result.partnerOrderId, result.partnerCode, OrderTicketCodeProviders.ShuCheng)
+        val ok = orderSvc.completedEnter(result.partnerOrderId, result.partnerCode, OrderTicketCodeProviders.ShuCheng)
         if (ok) {
             ret.responseHead = NoticeResultHead("1000", "成功更新订单状态")
             return ret

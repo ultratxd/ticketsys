@@ -5,7 +5,7 @@ import java.util.*
 
 interface TicketSvc {
 
-    fun getTicket(ticketId: Int, scenicSid: Int, date: Date, channelType: ChannelTypes): Ticket?
+    fun getTicket(ticketId: Int, date: Date, channelType: ChannelTypes): Ticket?
 
     fun getTickets(scenicSid: Int, date: Date, channelType: ChannelTypes): Collection<Ticket>
 

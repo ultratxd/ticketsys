@@ -2,7 +2,6 @@ package com.cj.ticketsys.controller
 
 import com.cj.ticketsys.cfg.SpringAppContext
 import com.cj.ticketsys.controller.dto.*
-import com.cj.ticketsys.controller.req.BuyRequest
 import com.cj.ticketsys.dao.CardTicketDao
 import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.OrderTicketCodeDao
@@ -233,7 +232,7 @@ class OrderController : BaseController() {
         }
         val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.System)
             ?: return Result(RESULT_FAIL, "编号不存在")
-        val ok = orderSvc.completdEnter(tCode.orderId, code, OrderTicketCodeProviders.System)
+        val ok = orderSvc.completedEnter(tCode.orderId, code, OrderTicketCodeProviders.System)
         if (ok) {
             return Result(RESULT_SUCCESS, "核销成功")
         }

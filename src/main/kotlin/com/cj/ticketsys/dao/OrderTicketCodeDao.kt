@@ -42,5 +42,6 @@ interface OrderTicketCodeDao {
     @Update(
         "update order_ticket_code set used_time=#{userTime},state=#{state} where order_id=#{orderNo}"
     )
-    fun update(orderNo: String, userTime: Date, state: TicketCodeStates): Long
+    fun update(orderNo: String, userTime: Date?, state: TicketCodeStates): Long
+
 }

@@ -24,6 +24,11 @@ interface SubOrderDao {
     fun updateState(id: Int, state: OrderStates): Long
 
     @Update(
+            "update sub_orders set state=#{state},refund_time=#{refundTime},refund_no=#{refundNo} where id=#{id}"
+    )
+    fun updateRefund(id: Int, state: OrderStates,refundTime:Date?,refundNo:String?): Long
+
+    @Update(
         "update sub_orders set state=#{state} where order_id=#{orderNo}"
     )
     fun updateStateByOrderNo(orderNo: String, state: OrderStates): Long

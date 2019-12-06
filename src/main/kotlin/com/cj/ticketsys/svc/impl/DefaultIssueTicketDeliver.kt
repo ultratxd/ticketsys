@@ -88,7 +88,7 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
         //需要加入年卡激活，使用前两位来区分散票或年卡类型
         val ydm = Utils.dateZoneFormat(date, "MMdd")//datefmt.format(date)
         val tag = String.format("%02d", channelType?.value ?: 99)
-        val rnd = String.format("%06d",Random().nextInt(1000000))
+        val rnd = String.format("%05d",Random().nextInt(100000))
         return "$tag$cid$ydm$rnd"
     }
 }
