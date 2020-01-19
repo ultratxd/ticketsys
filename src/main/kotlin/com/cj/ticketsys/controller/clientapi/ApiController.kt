@@ -27,7 +27,7 @@ class ApiController {
             @RequestBody gLog: GateLogReqBody,
             req: HttpServletRequest
     ): Result {
-        return clientSvc.insertClientGareLog(gLog)
+        return clientSvc.insertUpdateClientGareLog(gLog)
     }
 
     /**
@@ -38,55 +38,55 @@ class ApiController {
             @RequestBody orderBody: OrderReqBody,
             req: HttpServletRequest
     ): Result {
-        return clientSvc.insertClientOrder(orderBody)
+        return clientSvc.insertUpdateClientOrder(orderBody)
     }
 
     /**
      * 插入ClientSubOrder
      */
-    @PostMapping("/sub_order")
-    fun subOrder(
-            @RequestBody subOrderBody: SubOrderReqBody,
-            req: HttpServletRequest
-    ): Result {
-        return clientSvc.insertClientSubOrder(subOrderBody)
+//    @PostMapping("/sub_order")
+//    fun subOrder(
+//            @RequestBody subOrderBody: SubOrderReqBody,
+//            req: HttpServletRequest
+//    ): Result {
+//        return clientSvc.insertClientSubOrder(subOrderBody)
+//
+//    }
 
-    }
 
-
-    /**
-     * 修改ClientGateLog
-     */
-    @PostMapping("/updateGateLogs")
-    fun updateGateLogs(
-            @RequestBody gLog: GateLogReqBody,
-            req: HttpServletRequest
-    ): Result {
-        return clientSvc.updateClientGateLog(gLog)
-    }
-
-    /**
-     * 修改ClientOrder,如果subOrders不为null，则修改subOrders
-     */
-    @PostMapping("/updateOrders")
-    fun updateOrders(
-            @RequestBody orderBody: OrderReqBody,
-            req: HttpServletRequest
-    ): Result {
-        return clientSvc.updateClientOrder(orderBody)
-    }
+//    /**
+//     * 修改ClientGateLog
+//     */
+//    @PostMapping("/updateGateLogs")
+//    fun updateGateLogs(
+//            @RequestBody gLog: GateLogReqBody,
+//            req: HttpServletRequest
+//    ): Result {
+//        return clientSvc.updateClientGateLog(gLog)
+//    }
+//
+//    /**
+//     * 修改ClientOrder,如果subOrders不为null，则修改subOrders
+//     */
+//    @PostMapping("/updateOrders")
+//    fun updateOrders(
+//            @RequestBody orderBody: OrderReqBody,
+//            req: HttpServletRequest
+//    ): Result {
+//        return clientSvc.updateClientOrder(orderBody)
+//    }
 
 
     /**
      * 修改ClientSubOrder数据
      */
-    @PostMapping("/updateSubOrders")
-    fun updateSubOrders(
-            @RequestBody subOrderBody: SubOrderReqBody,
-            req: HttpServletRequest
-    ): Result {
-        return clientSvc.updateClientSubOrder(subOrderBody)
-    }
+//    @PostMapping("/updateSubOrders")
+//    fun updateSubOrders(
+//            @RequestBody subOrderBody: SubOrderReqBody,
+//            req: HttpServletRequest
+//    ): Result {
+//        return clientSvc.updateClientSubOrder(subOrderBody)
+//    }
 
 
 

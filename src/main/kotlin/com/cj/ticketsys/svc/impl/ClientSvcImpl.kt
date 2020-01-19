@@ -10,10 +10,8 @@ import com.cj.ticketsys.controller.dto.RESULT_FAIL
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.controller.dto.Result
 import com.cj.ticketsys.controller.dto.ResultT
-import com.cj.ticketsys.dao.ClientDataDao
-import com.cj.ticketsys.entities.ClientGateLog
-import com.cj.ticketsys.entities.ClientOrder
-import com.cj.ticketsys.entities.ClientSubOrder
+import com.cj.ticketsys.dao.*
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.ClientSvc
 import com.github.pagehelper.PageHelper
 import com.github.pagehelper.PageInfo
@@ -21,6 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.interceptor.TransactionAspectSupport
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+
 
 /**
  *  @author wangliwei
@@ -32,48 +34,77 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport
 class ClientSvcImpl : ClientSvc {
 
     @Autowired
-    private lateinit var dataDao: ClientDataDao
+    private lateinit var clientDataDao: ClientDataDao
+
+    @Autowired
+    private lateinit var clientUserDao: ClientUserDao
+
+    @Autowired
+    private lateinit var scenicSpotDao: ScenicSpotDao
+
+    @Autowired
+    private lateinit var orderDao: OrderDao
+
+    @Autowired
+    private lateinit var subOrderDao: SubOrderDao
 
     /**
      * 插入ClientGateLog
      */
     @Transactional(rollbackFor = [Exception::class])
-    override fun insertClientGareLog(gLog: GateLogReqBody): Result {
+    override fun insertUpdateClientGareLog(gLog: GateLogReqBody): Result {
         val log = createClientGateLog(gLog)
         log.scanDate = gLog.scanDate
 
-        val c = dataDao.insertGateLog(log)
-        if (c > 0) {
-            return Result(RESULT_SUCCESS, "ok")
+        val localLog = clientDataDao.queryGateLog(gLog.clientId)
+        if(localLog == null) {
+            val c = clientDataDao.insertGateLog(log)
+            if (c > 0) {
+                return Result(RESULT_SUCCESS, "ok")
+            }
+        }else {
+            val c = clientDataDao.updateGateLog(log);
+            if (c > 0) {
+                return Result(RESULT_SUCCESS, "ok")
+            }
         }
+        //syncCloudOrderState(gLog)
         return Result(RESULT_FAIL, "fail")
     }
 
+    private fun syncCloudOrderState(gLog: GateLogReqBody) {
+        
+    }
 
     /**
      * 插入ClientOrder
      */
     @Transactional(rollbackFor = [Exception::class])
-    override fun insertClientOrder(orderBody: OrderReqBody): Result {
+    override fun insertUpdateClientOrder(orderBody: OrderReqBody): Result {
         val order = createClientOrder(orderBody)
         order.createTime = orderBody.createTime
 
         //插入主订单
-        val c = dataDao.insertOrder(order)
+        val localOrder = clientDataDao.queryOrder(order.clientId)
+        val c = if(localOrder != null) {
+            clientDataDao.updateOrder(order)
+        }else {
+            clientDataDao.insertOrder(order)
+        }
         if (c <= 0) {
             return Result(RESULT_FAIL, "fail")
         }
 
         val subOrders = orderBody.subOrders
         //如果subOrders不为空，插入所有subOrders
-        if (!subOrders.isNullOrEmpty()) {
+        if (subOrders != null) {
             for (subOrder in subOrders) {
-                //校验子订单的pid是否等于父订单的cid
-                if (subOrder.clientParentId != order.clientId) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
-                    return Result(RESULT_FAIL, "fail")
+                val localSubOrder = clientDataDao.queryOrder(subOrder.clientId)
+                val d = if(localSubOrder != null) {
+                    updateSubOrder(subOrder)
+                } else {
+                    insertSubOrder(subOrder)
                 }
-                val d = insertSubOrder(subOrder)
                 if (d <= 0) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return Result(RESULT_FAIL, "fail")
@@ -81,27 +112,112 @@ class ClientSvcImpl : ClientSvc {
             }
         }
 
+        //同步云端订单状态
+        //syncCloudOrder(orderBody);
+
         return Result(RESULT_SUCCESS, "ok")
     }
 
-
-    /**
-     * 插入ClientSubOrder
-     */
-    @Transactional(rollbackFor = [Exception::class])
-    override fun insertClientSubOrder(subOrderBody: SubOrderReqBody): Result {
-        //如果子订单要修改的pid不为空，校验是否存在对应的父订单cid
-        if (subOrderBody.clientParentId != 0) {
-            dataDao.selectByCid(subOrderBody.clientParentId) ?: return Result(RESULT_FAIL, "对应父订单不存在")
+    fun syncCloudOrder(orderBody: OrderReqBody) : Boolean {
+        when(orderBody.orderType.toInt()) {
+            //门市
+            1,4 -> {
+                val order = orderReqToOrder(orderBody, BuyTypes.Offline)
+                val subOrders = orderReqToSubOrders(orderBody)
+                val localOrder = orderDao.get(order.orderId)
+                if(localOrder == null) {
+                    orderDao.insert(order)
+                } else {
+                    localOrder.price = order.price
+                    localOrder.childs = order.childs
+                    orderDao.update(localOrder)
+                }
+                val localSubOrders = subOrderDao.gets(order.orderId)
+                for(subOrder in subOrders) {
+                    val lso = localSubOrders.firstOrNull { a->a.ticketPid == subOrder.ticketPid }
+                    if(lso == null) {
+                        subOrderDao.insert(subOrder)
+                    } else {
+                        lso.useDate = subOrder.useDate
+                        lso.pernums = subOrder.pernums
+                        lso.ticketPid = subOrder.ticketPid
+                        lso.cid = subOrder.cid
+                        lso.totalPrice = subOrder.totalPrice
+                        lso.unitPrice = subOrder.unitPrice
+                        subOrderDao.update(lso)
+                    }
+                }
+                return true
+            }
+            //换票
+            2 -> {
+                return true
+            }
+            //电商换票
+            3 -> {
+                return true
+            }
         }
-
-        val c = insertSubOrder(subOrderBody)
-        if (c > 0) {
-            return Result(RESULT_SUCCESS, "ok")
-        }
-        return Result(RESULT_FAIL, "fail")
+        return false
     }
 
+    fun orderReqToOrder(orderBody: OrderReqBody,buyType: BuyTypes) : Order {
+        val order = Order()
+        order.orderId = orderBody.clientOrderNo
+        order.createTime = orderBody.createTime
+        order.price = orderBody.amount
+        order.childs = if(orderBody.subOrders == null) 0 else orderBody.subOrders!!.size
+        order.state = clientOrderStateConvert(orderBody.state)
+        order.buyType = buyType
+        return order
+    }
+
+    fun orderReqToSubOrders(orderBody: OrderReqBody) : List<SubOrder> {
+        if(orderBody.subOrders == null || orderBody.subOrders!!.isEmpty()) {
+            return emptyList()
+        }
+        val sOrders = ArrayList<SubOrder>()
+        for (subOrder in orderBody.subOrders!!) {
+            val client = clientUserDao.getUserByNo(orderBody.saleClientNo) ?: continue
+            val scenicSpot = scenicSpotDao.get(client.scenicSid) ?: continue
+
+            val sOrder = SubOrder()
+            sOrder.orderId = subOrder.clientOrderNo
+            sOrder.createTime = subOrder.createTime
+            sOrder.scenicId = scenicSpot.pid
+            sOrder.scenicSid = scenicSpot.id
+            sOrder.ticketId = 0
+            sOrder.ticketPid = subOrder.ticketId
+            sOrder.unitPrice = subOrder.unitPrice
+            sOrder.totalPrice = subOrder.amount
+            sOrder.nums = subOrder.nums
+            sOrder.pernums = subOrder.perNums
+            sOrder.state = clientOrderStateConvert(orderBody.state)
+            sOrder.useDate = numberToDate(subOrder.useDate)
+            sOrder.cid = TicketCategories.Retail.value
+            sOrder.issueTicketTime = subOrder.createTime
+
+            sOrders.add(sOrder)
+        }
+        return sOrders
+    }
+
+    private fun clientOrderStateConvert(state:Short):OrderStates {
+        when(state.toInt()) {
+            1 -> return OrderStates.Init
+            2 -> return OrderStates.Paied
+            3 -> return OrderStates.Used
+            else -> return OrderStates.Unknown
+        }
+    }
+
+    private fun numberToDate(date:Int) : Date {
+        val format = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+        val year = date.toString().substring(0,4)
+        val month = date.toString().substring(4,6)
+        val day = date.toString().substring(6)
+        return format.parse("${year}-${month}-${day} 00:00:00")
+    }
 
     /**
      * 更新ClientGateLog
@@ -110,61 +226,20 @@ class ClientSvcImpl : ClientSvc {
     override fun updateClientGateLog(gLog: GateLogReqBody): Result {
         val log = createClientGateLog(gLog)
 
-        val c = dataDao.updateGateLog(log)
+        val c = clientDataDao.updateGateLog(log)
         if (c > 0) {
             return Result(RESULT_SUCCESS, "ok")
         }
         return Result(RESULT_FAIL, "fail")
     }
 
-
-    /**
-     * 更新ClientOrder
-     */
-    @Transactional(rollbackFor = [Exception::class])
-    override fun updateClientOrder(orderBody: OrderReqBody): Result {
-        val order = createClientOrder(orderBody)
-
-        val c = dataDao.updateOrder(order)
-        if (c <= 0) {
-            return Result(RESULT_FAIL, "fail")
-        }
-
-        val subOrders = orderBody.subOrders
-        if (!subOrders.isNullOrEmpty()) {
-            //如果subOrders不为空，更新所有subOrders
-            for (subOrder in subOrders) {
-                //校验子订单的pid是否等于父订单的cid
-                if (subOrder.clientParentId != order.clientId) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
-                    return Result(RESULT_FAIL, "fail")
-                }
-                val d = updateSubOrder(subOrder)
-                if (d <= 0) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
-                    return Result(RESULT_FAIL, "fail")
-                }
-            }
-        }
-        return Result(RESULT_SUCCESS, "ok")
-    }
-
-
-    /**
-     * 更新ClientSubOrder
-     */
-    @Transactional(rollbackFor = [Exception::class])
-    override fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result {
-        //校验子订单的pid否存在对应的父订单cid
-        if (subOrderBody.clientParentId != 0) {
-            dataDao.selectByCid(subOrderBody.clientParentId) ?: return Result(RESULT_FAIL, "对应父订单不存在")
-        }
-        val c = updateSubOrder(subOrderBody)
-        if (c > 0) {
-            return Result(RESULT_SUCCESS, "ok")
-        }
-        return Result(RESULT_FAIL, "fail")
-    }
+//    override fun updateClientOrder(orderBody: OrderReqBody): Result {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//
+//    override fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
 
 
     /**
@@ -174,7 +249,7 @@ class ClientSvcImpl : ClientSvc {
         //开启分页
         PageHelper.startPage<ClientGateLog>(page_num, page_size)
         //查询所有gateLogs数据
-        val clientGateLogs = dataDao.selectGateLogList()
+        val clientGateLogs = clientDataDao.selectGateLogList()
         //封装数据到分页助手中
         val pageInfo = PageInfo<ClientGateLog>(clientGateLogs)
         val pageResult = PageResult<ClientGateLog>(pageInfo.total, pageInfo.pages, clientGateLogs)
@@ -190,14 +265,14 @@ class ClientSvcImpl : ClientSvc {
         //开启分页
         PageHelper.startPage<ClientOrder>(page_num, page_size)
         //查询所有gateLogs数据
-        val clientOrders = dataDao.selectClientOrderList()
+        val clientOrders = clientDataDao.selectClientOrderList()
         //拷贝数据到ClientOrdersDto中
         val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
         //将子订单的数据封装到dto中
         for (order in clientOrdersDtos) {
             //根据pId查询子订单，并将其封装到dto中
             val id = order.clientId
-            val subOrders = dataDao.selectByPid(id)
+            val subOrders = clientDataDao.selectByPid(id)
             order.childrens = subOrders
         }
         //封装数据到分页助手中
@@ -215,7 +290,7 @@ class ClientSvcImpl : ClientSvc {
         //开启分页
         PageHelper.startPage<ClientSubOrder>(page_num, page_size)
         //查询所有gateLogs数据
-        val clientSubOrders = dataDao.selectSubOrderList()
+        val clientSubOrders = clientDataDao.selectSubOrderList()
         //封装数据到分页助手中
         val pageInfo = PageInfo<ClientSubOrder>(clientSubOrders)
         val pageResult = PageResult<ClientSubOrder>(pageInfo.total, pageInfo.pages, clientSubOrders)
@@ -228,14 +303,14 @@ class ClientSvcImpl : ClientSvc {
         val subOrder = createClientSubOrder(subOrderBody)
         subOrder.createTime = subOrderBody.createTime
 
-        return dataDao.insertSubOrder(subOrder)
+        return clientDataDao.insertSubOrder(subOrder)
     }
 
     private fun updateSubOrder(subOrderBody: SubOrderReqBody): Long {
 
         val subOrder = createClientSubOrder(subOrderBody)
 
-        return dataDao.updateSubOrder(subOrder)
+        return clientDataDao.updateSubOrder(subOrder)
     }
 
     private fun createClientGateLog(gLog: GateLogReqBody): ClientGateLog {
@@ -245,6 +320,7 @@ class ClientSvcImpl : ClientSvc {
         log.clientOrderSid = gLog.clientOrderSid
         log.code = gLog.code
         log.cType = gLog.cType
+        log.scanDate = gLog.scanDate
         log.scanTime = gLog.scanTime
         log.inTime = gLog.inTime
         log.outTime = gLog.outTime

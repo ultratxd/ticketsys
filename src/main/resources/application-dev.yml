@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8088
   compression:
     enabled: true
     min-response-size: 2048
@@ -10,8 +10,8 @@ server:
 spring:
   datasource:
     name: mydb
-#    url: jdbc:mysql://172.28.3.45:20010/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
-    url: jdbc:mysql://172.28.3.25:33306/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+    url: jdbc:mysql://172.28.3.45:20010/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+#    url: jdbc:mysql://172.28.3.45:3306/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
@@ -46,7 +46,7 @@ spring:
     timeout: 6000
     max-attempts: 6
 #    host: localhost
-    host: 172.28.3.25
+    host: 172.28.3.45
     port: 6379
 
   rabbitmq:

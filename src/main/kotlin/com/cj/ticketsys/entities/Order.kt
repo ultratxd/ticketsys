@@ -21,4 +21,8 @@ class Order:PropertyEntity() {
     var issueTicketTime:Date?
         get() = this.getProperty("issue_ticket_time") as Date?
         set(value)= this.setProperty("issue_ticket_time",value)
+
+//    var inPasses:Int?
+//        get() = this.getProperty("in_passes") as Int?
+//        set(value)= this.setProperty("in_passes",value)
 }

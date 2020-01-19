@@ -21,6 +21,15 @@ interface B2bDao {
     )
     fun getOrderByOtaId(otaId:String,ota:Int): B2bOrder?
 
+    @Select("select * from b2b_orders where order_id=#{orderId} and ota=#{ota}")
+    @Results(
+            Result(column = "ota_id", property = "otaId"),
+            Result(column = "order_id", property = "orderId"),
+            Result(column = "confirm_type", property = "confirmType"),
+            Result(column = "create_ime", property = "createTime")
+    )
+    fun getOrder(orderId:String,ota:Int): B2bOrder?
+
     @Insert("insert into b2b_contacts(ota_id,name,mobile,intl_code,opt_mobile,opt_intl_code,email) " +
             "values(#{otaId},#{name},#{mobile},#{intlCode},#{optionalMobile},#{optionalIntlCode},#{email})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")

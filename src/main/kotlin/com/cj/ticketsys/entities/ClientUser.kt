@@ -10,6 +10,7 @@ class ClientUser {
     var remark:String = ""
     var serialNo:String = ""
     var enabled:Boolean = true
+    var scenicSid:Int = 0
 }
 
 class ClientLoginLog {

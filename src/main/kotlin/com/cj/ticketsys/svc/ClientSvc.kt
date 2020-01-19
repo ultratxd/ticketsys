@@ -16,12 +16,12 @@ import com.cj.ticketsys.entities.ClientSubOrder
  *
  */
 interface ClientSvc {
-    fun insertClientGareLog(gLog: GateLogReqBody): Result
-    fun insertClientOrder(orderBody: OrderReqBody): Result
-    fun insertClientSubOrder(subOrderBody: SubOrderReqBody): Result
+    fun insertUpdateClientGareLog(gLog: GateLogReqBody): Result
+    fun insertUpdateClientOrder(orderBody: OrderReqBody): Result
+    //fun insertClientSubOrder(subOrderBody: SubOrderReqBody): Result
     fun updateClientGateLog(gLog: GateLogReqBody): Result
-    fun updateClientOrder(orderBody: OrderReqBody): Result
-    fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result
+    //fun updateClientOrder(orderBody: OrderReqBody): Result
+    //fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result
     fun getClientGateLogs(page_num: Int, page_size: Int): ResultT<PageResult<ClientGateLog>>
     fun getClientOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientOrderDto>>
     fun getClientSubOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientSubOrder>>

@@ -3,6 +3,7 @@ package com.cj.ticketsys.dao
 import com.cj.ticketsys.entities.ClientGateLog
 import com.cj.ticketsys.entities.ClientOrder
 import com.cj.ticketsys.entities.ClientSubOrder
+import com.cj.ticketsys.entities.SubOrder
 import org.apache.ibatis.annotations.*
 
 @Mapper
@@ -19,6 +20,10 @@ interface ClientDataDao {
     fun insertGateLog(log: ClientGateLog): Long
 
 
+    @Select("select * from client_gate_logs where c_id=#{cid}")
+    fun queryGateLog(cid:Int): ClientGateLog?
+
+
     /**
      * 插入ClientOrder
      */
@@ -30,6 +35,15 @@ interface ClientDataDao {
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertOrder(order: ClientOrder): Long
 
+    @Select("select * from client_orders where c_id=#{cid}")
+    @Results(
+            Result(column = "c_id", property = "clientId"),
+            Result(column = "c_order_no", property = "clientOrderNo"),
+            Result(column = "tkt_id", property = "ticketId"),
+            Result(column = "tkt_name", property = "ticketName"),
+            Result(column = "c_pid", property = "clientParentId")
+    )
+    fun queryOrder(cid:Int): ClientOrder?
 
     /**
      * 插入ClientSubOrder
@@ -41,6 +55,15 @@ interface ClientDataDao {
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertSubOrder(subOrder: ClientSubOrder): Long
 
+    @Select("select * from client_suborders where c_id=#{cid}")
+    @Results(
+            Result(column = "c_id", property = "clientId"),
+            Result(column = "c_order_no", property = "clientOrderNo"),
+            Result(column = "tkt_id", property = "ticketId"),
+            Result(column = "tkt_name", property = "ticketName"),
+            Result(column = "c_pid", property = "clientParentId")
+    )
+    fun querySubOrder(cid:Int): SubOrder?
 
     /**
      * 修改ClientGateLog
@@ -55,6 +78,7 @@ interface ClientDataDao {
                     "<if test=\"code !=''\">, code=#{code}</if>" +
                     "<if test=\"cType !=0\">, ctype=#{cType}</if>" +
                     "<if test=\"scanTime !=0\">, scan_time=#{scanTime}</if>" +
+                    "<if test=\"scan_date !=null\">, scan_date=#{scanDate}</if>" +
                     "<if test=\"inTime !=null\">, in_time=#{inTime}</if>" +
                     "<if test=\"outTime !=null\">, out_time=#{outTime}</if>" +
                     "<if test=\"perNums !=0\">, per_nums=#{perNums}</if>" +

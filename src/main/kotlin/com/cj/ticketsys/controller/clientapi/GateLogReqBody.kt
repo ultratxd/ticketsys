@@ -15,7 +15,7 @@ class GateLogReqBody {
     @JsonProperty("ctype")
     var cType:Short = 0
     @JsonProperty("scan_date")
-    var scanDate: Date = Date()
+    var scanDate: Date? = null
     @JsonProperty("scan_time")
     var scanTime:Int = 0
     @JsonProperty("in_time")

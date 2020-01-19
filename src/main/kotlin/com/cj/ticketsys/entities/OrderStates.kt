@@ -10,7 +10,8 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
     RefundedPart(31),
     Used(40),
     Cancel(50),
-    Closed(99);
+    Closed(99),
+    Unknown(100);
 
     override fun code(): Int {
         return this.value.toInt()
@@ -29,6 +30,7 @@ enum class OrderStates(val value:Short) : CodeBaseEnum {
                 40 -> return Used
                 50 -> return Cancel
                 99 -> return Closed
+                100 -> return Unknown
             }
             throw IllegalArgumentException("value不存在枚举")
         }

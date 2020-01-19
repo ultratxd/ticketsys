@@ -3,8 +3,10 @@ package com.cj.ticketsys.svc.b2b
 import com.alibaba.druid.util.Utils.md5
 import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.controller.b2b.CtripCreateOrderBody
+import com.cj.ticketsys.controller.b2b.Encrypt
 import com.cj.ticketsys.dao.B2bCtripDao
 import com.cj.ticketsys.dao.B2bDao
+import com.cj.ticketsys.dao.OrderTicketCodeDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.Order
@@ -13,6 +15,7 @@ import com.cj.ticketsys.entities.b2b.*
 import com.cj.ticketsys.svc.IdBuilder
 import com.cj.ticketsys.svc.PriceBinder
 import com.cj.ticketsys.svc.Utils
+import com.google.common.base.Strings
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,6 +48,9 @@ class B2BCtripSvc {
     @Autowired
     private lateinit var b2bCtripDao: B2bCtripDao
 
+    @Autowired
+    private lateinit var orderTicketCodeDao: OrderTicketCodeDao
+
     @Value("\${b2b.ctrip.secret}")
     private lateinit var secret: String
 
@@ -57,15 +63,21 @@ class B2BCtripSvc {
     @Value("\${b2b.ctrip.notifyUrl}")
     private lateinit var notifyUrl: String
 
+    @Value("\${b2b.ctrip.aesSecret}")
+    private lateinit var aesSecret: String
+
+    @Value("\${b2b.ctrip.aesIVSecret}")
+    private lateinit var aesIVSecret: String
+
 
     val JsonMediaType  = "application/json; charset=utf-8".toMediaType()
 
     /**
      * 价格同步
      */
-    fun pushPrices(price: TicketPrice) {
+    fun pushPrices(price: TicketPrice): Boolean {
         if (price.channelType != ChannelTypes.Ctrip || price.b2bPLU == null) {
-            return
+            return false
         }
         val tktId = price.tid
         val cPrices = ArrayList<CtripPrice>()
@@ -101,14 +113,15 @@ class B2BCtripSvc {
         ctripHeader.requestTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
         ctripHeader.serviceName = "DatePriceModify"
         ctripHeader.version = version
-        ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
 
-        val ctripReqBody = CtripRequest<CtripPriceBody>()
-        ctripReqBody.header = ctripHeader
-        ctripReqBody.body = ctripBody
+        val req = CtripRequest<String>()
+        req.header = ctripHeader
+        req.body = Encrypt.encrypt(JSON.toJSONString(ctripBody),aesSecret,aesIVSecret)
+
+        ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, req.body as String)
 
         val client = OkHttpClient()
-        val reqBody = JSON.toJSONString(ctripReqBody).toRequestBody(JsonMediaType)
+        val reqBody = JSON.toJSONString(req).toRequestBody(JsonMediaType)
         val request = Request.Builder()
                 .url(notifyUrl)
                 .post(reqBody)
@@ -117,18 +130,18 @@ class B2BCtripSvc {
         val respBody = resp.body.toString()
         val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
-
+            return true
         }
+        return false
     }
 
     /**
      * 库存同步
      */
-    fun pushInventory(price: TicketPrice) {
+    fun pushInventory(price: TicketPrice): Boolean {
         if (price.channelType != ChannelTypes.Ctrip || price.b2bPLU == null) {
-            return
+            return false
         }
-        val tktId = price.tid
         val cInventorys = ArrayList<CtripInventory>()
         for (i in 0..30) {
             val rightNow = Calendar.getInstance()
@@ -154,14 +167,15 @@ class B2BCtripSvc {
         ctripHeader.requestTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
         ctripHeader.serviceName = "DateInventoryModify"
         ctripHeader.version = version
-        ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, JSON.toJSONString(ctripBody))
 
-        val ctripReqBody = CtripRequest<CtripInventoryBody>()
-        ctripReqBody.header = ctripHeader
-        ctripReqBody.body = ctripBody
+        val req = CtripRequest<String>()
+        req.header = ctripHeader
+        req.body = Encrypt.encrypt(JSON.toJSONString(ctripBody),aesSecret,aesIVSecret)
+
+        ctripHeader.sign = makeSign(accountId, ctripHeader.serviceName, req.body as String)
 
         val client = OkHttpClient()
-        val reqBody = JSON.toJSONString(ctripReqBody).toRequestBody(JsonMediaType)
+        val reqBody = JSON.toJSONString(req).toRequestBody(JsonMediaType)
         val request = Request.Builder()
                 .url(notifyUrl)
                 .post(reqBody)
@@ -170,11 +184,120 @@ class B2BCtripSvc {
         val respBody = resp.body.toString()
         val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
-
+            return true
         }
+        return false
     }
 
-    private fun makeSign(serviceName: String, requestTime: String, body: String): String {
+    /**
+     * 核销通知
+     */
+    fun consumedNotice(orderId:String):Boolean {
+        val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
+        val order = b2bDao.getOrder(orderId,B2bOtaCategory.Ctrip.code()) ?: return false
+
+        val ctripBody = CtripConsumedNoticeBody()
+        val dateFmt = SimpleDateFormat("yyyy-MM-dd")
+        for(item in orderItems) {
+            val cItem = CtripConsumedNoticeBodyItem()
+            cItem.itemId = item.itemId
+            if(item.useStartDate != null) {
+                cItem.useStartDate = dateFmt.format(cItem.useStartDate)
+            }
+            if(item.useEndDate != null) {
+                cItem.useEndDate = dateFmt.format(cItem.useEndDate)
+            }
+            cItem.quantity = item.quantity
+            cItem.useQuantity = item.quantity
+            cItem.remark = item.remark
+            cItem.lostAmount = item.price
+            cItem.lostAmountCurrency = item.priceCurrency
+            ctripBody!!.items!!.add(cItem)
+        }
+        ctripBody.otaOrderId = order.otaId
+        ctripBody.supplierOrderId = order.orderId
+        ctripBody.sequenceId = makeSeqId()
+
+        val header = CtripHeader()
+        header.accountId = accountId
+        header.requestTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+        header.serviceName = "OrderConsumedNotice"
+        header.version = version
+
+        val req = CtripRequest<String>()
+        req.header = header
+        req.body = Encrypt.encrypt(JSON.toJSONString(ctripBody),aesSecret,aesIVSecret)
+
+        header.sign = makeSign(accountId, header.serviceName, req.body as String)
+
+        val client = OkHttpClient()
+        val reqBody = JSON.toJSONString(req).toRequestBody(JsonMediaType)
+        val request = Request.Builder()
+                .url(notifyUrl)
+                .post(reqBody)
+                .build();
+        val resp = client.newCall(request).execute()
+        val respBody = resp.body.toString()
+        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        if(respResult.resultCode.equals("0000")) {
+            return true
+        }
+        return false
+    }
+
+    /**
+     * 出行通知
+     */
+    fun travelNotice(orderId:String):Boolean {
+        val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
+        val order = b2bDao.getOrder(orderId,B2bOtaCategory.Ctrip.code()) ?: return false
+        val ctripBody = CtripTravelNoticeBody()
+
+        val tCode = orderTicketCodeDao.get(orderId) ?: return false
+        for (item in orderItems) {
+            ctripBody.vouchers.add(CtripTravelNoticeVoucher(
+                    itemId = item.itemId,
+                    voucherCode = tCode.code,
+                    voucherData = "",
+                    voucherType = 3
+            ))
+            ctripBody.items.add(CtripTravelNoticeItem(
+                    itemId = item.itemId,
+                    remark = item.remark
+            ))
+        }
+        ctripBody.otaOrderId = order.otaId
+        ctripBody.supplierOrderId = orderId
+        ctripBody.sequenceId = makeSeqId()
+
+        val header = CtripHeader()
+        header.accountId = accountId
+        header.requestTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+        header.serviceName = "OrderTravelNotice"
+        header.version = version
+
+        val req = CtripRequest<String>()
+        req.header = header
+        req.body = Encrypt.encrypt(JSON.toJSONString(ctripBody),aesSecret,aesIVSecret)
+
+        header.sign = makeSign(accountId, header.serviceName, req.body as String)
+
+        val client = OkHttpClient()
+        val reqBody = JSON.toJSONString(req).toRequestBody(JsonMediaType)
+        val request = Request.Builder()
+                .url(notifyUrl)
+                .post(reqBody)
+                .build();
+        val resp = client.newCall(request).execute()
+        val respBody = resp.body.toString()
+        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        if(respResult.resultCode.equals("0000")) {
+            return true
+        }
+        return false
+    }
+
+    fun makeSign(serviceName: String, requestTime: String, body: String): String {
         //accountId+serviceName+requestTime+body+version+signkey
         return md5(accountId + serviceName + requestTime + body + version + secret).toLowerCase()
     }
@@ -257,7 +380,7 @@ class B2BCtripSvc {
                 b2bItem.priceCurrency = item.priceCurrency
                 b2bItem.quantity = item.quantity
                 b2bItem.remark = item.remark
-                b2bItem.suggestedPrice = item.suggestedPrice?.toDouble()
+                b2bItem.suggestedPrice = if(Strings.isNullOrEmpty(item.suggestedPrice)) null else item.suggestedPrice!!.toDouble()
                 b2bItem.suggestedPriceCurrency = item.suggestedPriceCurrency
                 b2bItem.useEndDate = Utils.stringToDate(item.useEndDate,"yyyy-MM-dd")
                 b2bItem.useStartDate = Utils.stringToDate(item.useStartDate,"yyyy-MM-dd")
@@ -359,6 +482,7 @@ class CtripRequest<T> {
 }
 
 
+
 class CtripInventory {
     var date: String = ""
     var quantity:Int = 0
@@ -370,3 +494,58 @@ class CtripInventoryBody {
     var supplierOptionId: String = ""
     var inventorys: List<CtripInventory> = emptyList()
 }
+
+
+/**
+ * 核销订单
+ */
+data class CtripConsumedNoticeBody(
+    var items: MutableList<CtripConsumedNoticeBodyItem?>? = ArrayList(),
+    var otaOrderId: String? = "",
+    var sequenceId: String? = "",
+    var supplierOrderId: String? = ""
+)
+
+data class CtripConsumedNoticeBodyItem(
+    var discount: CtripConsumedNoticeBodyItemDiscount? = CtripConsumedNoticeBodyItemDiscount(),
+    var itemId: String? = "",
+    var lostAmount: Double? = 0.0,
+    var lostAmountCurrency: String? = "",
+    var quantity: Int? = 0,
+    var remark: String? = "",
+    var useEndDate: String? = "",
+    var useQuantity: Int? = 0,
+    var useStartDate: String? = ""
+)
+
+data class CtripConsumedNoticeBodyItemDiscount(
+    var policyList: List<CtripConsumedNoticeBodyItemPolicy?>? = listOf()
+)
+
+data class CtripConsumedNoticeBodyItemPolicy(
+    var date: String? = "",
+    var quantity: Int? = 0
+)
+
+/**
+ * 订单通知
+ */
+data class CtripTravelNoticeBody(
+        var items: MutableList<CtripTravelNoticeItem?> = ArrayList(),
+        var vouchers: MutableList<CtripTravelNoticeVoucher> = ArrayList(),
+        var otaOrderId: String? = "",
+        var sequenceId: String? = "",
+        var supplierOrderId: String? = ""
+)
+
+data class CtripTravelNoticeVoucher(
+    var itemId: String? = "",
+    var voucherCode: String? = "",
+    var voucherData: String? = "",
+    var voucherType: Int? = 0
+)
+
+data class CtripTravelNoticeItem(
+    var itemId: String? = "",
+    var remark: String? = ""
+)
