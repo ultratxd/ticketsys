@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.*
 interface RecommendDao {
 
     @Select(
-        "select * from recommends where `type`=#{type} order by displayorder desc limit top"
+        "select * from recommends where `type`=#{type} order by displayorder desc limit #{top}"
     )
     @Results(
         Result(column = "refid", property = "refId"),

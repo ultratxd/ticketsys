@@ -47,55 +47,6 @@ class ApiController {
     }
 
     /**
-     * 插入ClientSubOrder
-     */
-//    @PostMapping("/sub_order")
-//    fun subOrder(
-//            @RequestBody subOrderBody: SubOrderReqBody,
-//            req: HttpServletRequest
-//    ): Result {
-//        return clientSvc.insertClientSubOrder(subOrderBody)
-//
-//    }
-
-
-//    /**
-//     * 修改ClientGateLog
-//     */
-//    @PostMapping("/updateGateLogs")
-//    fun updateGateLogs(
-//            @RequestBody gLog: GateLogReqBody,
-//            req: HttpServletRequest
-//    ): Result {
-//        return clientSvc.updateClientGateLog(gLog)
-//    }
-//
-//    /**
-//     * 修改ClientOrder,如果subOrders不为null，则修改subOrders
-//     */
-//    @PostMapping("/updateOrders")
-//    fun updateOrders(
-//            @RequestBody orderBody: OrderReqBody,
-//            req: HttpServletRequest
-//    ): Result {
-//        return clientSvc.updateClientOrder(orderBody)
-//    }
-
-
-    /**
-     * 修改ClientSubOrder数据
-     */
-//    @PostMapping("/updateSubOrders")
-//    fun updateSubOrders(
-//            @RequestBody subOrderBody: SubOrderReqBody,
-//            req: HttpServletRequest
-//    ): Result {
-//        return clientSvc.updateClientSubOrder(subOrderBody)
-//    }
-
-
-
-    /**
      * 获取ClientGateLogs分页数据
      */
     @GetMapping("/gateLogsList")
@@ -118,20 +69,20 @@ class ApiController {
     fun getOrders(
             @RequestParam page_num: Int?,
             @RequestParam page_size: Int?,
+            @RequestParam order_type: Int?,
             req: HttpServletRequest
     ) : ResultT<PagedList<ClientOrderDto>> {
-//        if (!checkPageParams(page_num, page_size)) {
-//            return ResultT(RESULT_FAIL, "参数错误")
-//        }
         var page = 1
         var size = 20
+        var orderType = 0
         if(page_num != null && page_num > 0) {
             page =  page_num
         }
         if(page_size != null && page_size > 0) {
             size = page_size
         }
-        val pList = clientSvc.getClientOrders(page,size)
+
+        val pList = clientSvc.getClientOrders(page,size,order_type)
         val outs = ArrayList<ClientOrderDto>()
         for(order in pList.list) {
             outs.add(orderTransformer.transform(order)!!)

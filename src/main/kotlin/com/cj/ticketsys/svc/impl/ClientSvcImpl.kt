@@ -255,10 +255,10 @@ class ClientSvcImpl : ClientSvc {
     /**
      * 分页查询ClientOrders
      */
-    override fun getClientOrders(page_num: Int, page_size: Int): PagedList<ClientOrder> {
+    override fun getClientOrders(page_num: Int, page_size: Int, orderType:Int?): PagedList<ClientOrder> {
         val offset = (page_num - 1) * page_size
-        val total = clientDataDao.selectClientOrderCount()
-        val list = clientDataDao.selectClientOrderList(offset,page_size)
+        val total = clientDataDao.selectClientOrderCount(orderType)
+        val list = clientDataDao.selectClientOrderList(offset,page_size,orderType)
         return PagedList(page_num,page_size,total,list)
     }
 

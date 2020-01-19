@@ -175,23 +175,30 @@ interface ClientDataDao {
     @Select(
             "<script>" +
                     "select count(0) from client_orders" +
+                    "<where>"+
+                    "<if test=\"orderType != null\">and order_type=#{orderType}</if>" +
+                    "</where>" +
                     "</script>"
     )
-    fun selectClientOrderCount():Long
+    fun selectClientOrderCount(@Param(value = "orderType") orderType:Int?):Long
 
     /**
      * 查询ClientOrders
      */
     @Select(
             "<script>" +
-                    "select * from client_orders order by id desc limit #{offset},#{size}" +
+                    "select * from client_orders" +
+                    "<where>"+
+                    "<if test=\"orderType != null\"> and order_type=#{orderType}</if>" +
+                    "</where>" +
+                    "order by id desc limit #{offset},#{size}" +
             "</script>"
     )
     @Results(
             Result(column = "c_id", property = "clientId"),
             Result(column = "c_order_no", property = "clientOrderNo")
     )
-    fun selectClientOrderList(offset:Int, size:Int): List<ClientOrder>
+    fun selectClientOrderList(offset:Int, size:Int, @Param(value = "orderType") orderType:Int?): List<ClientOrder>
 
 
     /**
