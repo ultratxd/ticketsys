@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("/ota/v1/sync")
+@RequestMapping("/ota/v1/manage/sync")
 class ApiController {
 
     @Autowired
