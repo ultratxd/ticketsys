@@ -1,6 +1,5 @@
 package com.cj.ticketsys.controller.clientapi.dto
 
-import com.cj.ticketsys.entities.ClientSubOrder
 import java.util.*
 
 
@@ -26,5 +25,5 @@ open class ClientOrderDto {
     var ext2: String? = null
     var ext3: String? = null
     var properties: String? = ""
-    var childrens: List<ClientSubOrder>? = null
+    var childrens: List<ClientSubOrderDto>? = null
 }

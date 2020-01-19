@@ -3,8 +3,6 @@ package com.cj.ticketsys.svc.impl
 import com.cj.ticketsys.controller.clientapi.GateLogReqBody
 import com.cj.ticketsys.controller.clientapi.OrderReqBody
 import com.cj.ticketsys.controller.clientapi.SubOrderReqBody
-import com.cj.ticketsys.controller.clientapi.dto.ClientOrderDto
-import com.cj.ticketsys.controller.clientapi.utils.BeanHelper
 import com.cj.ticketsys.controller.clientapi.vo.PageResult
 import com.cj.ticketsys.controller.dto.RESULT_FAIL
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
@@ -18,7 +16,6 @@ import com.github.pagehelper.PageInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -258,32 +255,11 @@ class ClientSvcImpl : ClientSvc {
     /**
      * 分页查询ClientOrders
      */
-    override fun getClientOrders(page_num: Int, page_size: Int): ResultT<PagedList<ClientOrderDto>> {
-//        //开启分页
-//        PageHelper.startPage<ClientOrder>(page_num, page_size)
-//        //查询所有gateLogs数据
-//        val clientOrders = clientDataDao.selectClientOrderList()
-//        //拷贝数据到ClientOrdersDto中
-//        val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
-//        //将子订单的数据封装到dto中
-//        for (order in clientOrdersDtos) {
-//            //根据pId查询子订单，并将其封装到dto中
-//            val id = order.clientId
-//            val subOrders = clientDataDao.selectByPid(id)
-//            order.childrens = subOrders
-//        }
-//        //封装数据到分页助手中
-//        val pageInfo = PageInfo<ClientOrderDto>(clientOrdersDtos)
-//        val pageResult = PageResult<ClientOrderDto>(pageInfo.total, pageInfo.pages, clientOrdersDtos)
-//        //返回分页数据
-//        return ResultT(RESULT_SUCCESS, "ok", pageResult)
-
+    override fun getClientOrders(page_num: Int, page_size: Int): PagedList<ClientOrder> {
         val offset = (page_num - 1) * page_size
         val total = clientDataDao.selectClientOrderCount()
         val list = clientDataDao.selectClientOrderList(offset,page_size)
-        val clientOrdersDtos = BeanHelper.copyWithCollection(list, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
-        val pList = PagedList(page_num,page_size,total,clientOrdersDtos)
-        return ResultT(RESULT_SUCCESS,"ok",pList)
+        return PagedList(page_num,page_size,total,list)
     }
 
 

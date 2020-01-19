@@ -3,12 +3,13 @@ package com.cj.ticketsys.controller.clientapi
 import com.cj.ticketsys.controller.clientapi.dto.ClientOrderDto
 import com.cj.ticketsys.controller.clientapi.vo.PageResult
 import com.cj.ticketsys.controller.dto.RESULT_FAIL
+import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.controller.dto.Result
 import com.cj.ticketsys.controller.dto.ResultT
-import com.cj.ticketsys.entities.ClientGateLog
-import com.cj.ticketsys.entities.ClientSubOrder
-import com.cj.ticketsys.entities.PagedList
+import com.cj.ticketsys.controller.manage.dto.MRecommendDto
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.ClientSvc
+import com.cj.ticketsys.svc.DocTransformer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
@@ -19,6 +20,9 @@ class ApiController {
 
     @Autowired
     private lateinit var clientSvc: ClientSvc
+
+    @Autowired
+    private lateinit var orderTransformer: DocTransformer<ClientOrder, ClientOrderDto>
 
     /**
      * 插入ClientGateLog
@@ -127,7 +131,13 @@ class ApiController {
         if(page_size != null && page_size > 0) {
             size = page_size
         }
-        return clientSvc.getClientOrders(page,size)
+        val pList = clientSvc.getClientOrders(page,size)
+        val outs = ArrayList<ClientOrderDto>()
+        for(order in pList.list) {
+            outs.add(orderTransformer.transform(order)!!)
+        }
+        val outPList = PagedList(pList.page,pList.size,pList.total,outs)
+        return ResultT(RESULT_SUCCESS,"",outPList)
     }
 
     /**
