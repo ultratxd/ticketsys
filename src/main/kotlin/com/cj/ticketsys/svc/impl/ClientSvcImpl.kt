@@ -86,28 +86,25 @@ class ClientSvcImpl : ClientSvc {
 
         //插入主订单
         val localOrder = clientDataDao.queryOrder(order.clientId)
-        val c = if(localOrder != null) {
-            clientDataDao.updateOrder(order)
-        }else {
+       if(localOrder != null) {
+           val c = clientDataDao.updateOrder(order)
+           if (c <= 0) {
+               return Result(RESULT_FAIL, "fail")
+           }
+        } else {
             clientDataDao.insertOrder(order)
         }
-        if (c <= 0) {
-            return Result(RESULT_FAIL, "fail")
-        }
+
 
         val subOrders = orderBody.subOrders
         //如果subOrders不为空，插入所有subOrders
         if (subOrders != null) {
             for (subOrder in subOrders) {
                 val localSubOrder = clientDataDao.queryOrder(subOrder.clientId)
-                val d = if(localSubOrder != null) {
+                if(localSubOrder != null) {
                     updateSubOrder(subOrder)
                 } else {
                     insertSubOrder(subOrder)
-                }
-                if (d <= 0) {
-                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
-                    return Result(RESULT_FAIL, "fail")
                 }
             }
         }
@@ -261,25 +258,32 @@ class ClientSvcImpl : ClientSvc {
     /**
      * 分页查询ClientOrders
      */
-    override fun getClientOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientOrderDto>> {
-        //开启分页
-        PageHelper.startPage<ClientOrder>(page_num, page_size)
-        //查询所有gateLogs数据
-        val clientOrders = clientDataDao.selectClientOrderList()
-        //拷贝数据到ClientOrdersDto中
-        val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
-        //将子订单的数据封装到dto中
-        for (order in clientOrdersDtos) {
-            //根据pId查询子订单，并将其封装到dto中
-            val id = order.clientId
-            val subOrders = clientDataDao.selectByPid(id)
-            order.childrens = subOrders
-        }
-        //封装数据到分页助手中
-        val pageInfo = PageInfo<ClientOrderDto>(clientOrdersDtos)
-        val pageResult = PageResult<ClientOrderDto>(pageInfo.total, pageInfo.pages, clientOrdersDtos)
-        //返回分页数据
-        return ResultT(RESULT_SUCCESS, "ok", pageResult)
+    override fun getClientOrders(page_num: Int, page_size: Int): ResultT<PagedList<ClientOrderDto>> {
+//        //开启分页
+//        PageHelper.startPage<ClientOrder>(page_num, page_size)
+//        //查询所有gateLogs数据
+//        val clientOrders = clientDataDao.selectClientOrderList()
+//        //拷贝数据到ClientOrdersDto中
+//        val clientOrdersDtos = BeanHelper.copyWithCollection(clientOrders, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
+//        //将子订单的数据封装到dto中
+//        for (order in clientOrdersDtos) {
+//            //根据pId查询子订单，并将其封装到dto中
+//            val id = order.clientId
+//            val subOrders = clientDataDao.selectByPid(id)
+//            order.childrens = subOrders
+//        }
+//        //封装数据到分页助手中
+//        val pageInfo = PageInfo<ClientOrderDto>(clientOrdersDtos)
+//        val pageResult = PageResult<ClientOrderDto>(pageInfo.total, pageInfo.pages, clientOrdersDtos)
+//        //返回分页数据
+//        return ResultT(RESULT_SUCCESS, "ok", pageResult)
+
+        val offset = (page_num - 1) * page_size
+        val total = clientDataDao.selectClientOrderCount()
+        val list = clientDataDao.selectClientOrderList(offset,page_size)
+        val clientOrdersDtos = BeanHelper.copyWithCollection(list, ClientOrderDto::class.java) ?: return ResultT(RESULT_FAIL, "【数据转换】订单数据转换出错")
+        val pList = PagedList(page_num,page_size,total,clientOrdersDtos)
+        return ResultT(RESULT_SUCCESS,"ok",pList)
     }
 
 

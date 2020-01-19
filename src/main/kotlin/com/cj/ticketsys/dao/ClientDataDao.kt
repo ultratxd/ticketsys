@@ -172,19 +172,26 @@ interface ClientDataDao {
     fun selectByPid(@Param("id") id: Int): List<ClientSubOrder>
 
 
+    @Select(
+            "<script>" +
+                    "select count(0) from client_orders" +
+                    "</script>"
+    )
+    fun selectClientOrderCount():Long
+
     /**
      * 查询ClientOrders
      */
     @Select(
             "<script>" +
-                    "select id,c_id,cloud_id,c_order_no,nums,order_type,amount,per_nums,create_time,state,pay_type,real_pay,change_pay,should_pay,excode,remark,sale_client_no,ext1,ext2,ext3,properties from client_orders" +
+                    "select * from client_orders order by id desc limit #{offset},#{size}" +
             "</script>"
     )
     @Results(
             Result(column = "c_id", property = "clientId"),
             Result(column = "c_order_no", property = "clientOrderNo")
     )
-    fun selectClientOrderList(): List<ClientOrder>
+    fun selectClientOrderList(offset:Int, size:Int): List<ClientOrder>
 
 
     /**

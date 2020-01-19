@@ -7,6 +7,7 @@ import com.cj.ticketsys.controller.dto.Result
 import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.entities.ClientGateLog
 import com.cj.ticketsys.entities.ClientSubOrder
+import com.cj.ticketsys.entities.PagedList
 import com.cj.ticketsys.svc.ClientSvc
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -111,15 +112,22 @@ class ApiController {
      */
     @GetMapping("/ordersList")
     fun getOrders(
-            @RequestParam page_num: Int,
-            @RequestParam page_size: Int,
+            @RequestParam page_num: Int?,
+            @RequestParam page_size: Int?,
             req: HttpServletRequest
-    ) : ResultT<PageResult<ClientOrderDto>> {
-        if (!checkPageParams(page_num, page_size)) {
-            return ResultT(RESULT_FAIL, "参数错误")
+    ) : ResultT<PagedList<ClientOrderDto>> {
+//        if (!checkPageParams(page_num, page_size)) {
+//            return ResultT(RESULT_FAIL, "参数错误")
+//        }
+        var page = 1
+        var size = 20
+        if(page_num != null && page_num > 0) {
+            page =  page_num
         }
-        return clientSvc.getClientOrders(page_num,page_size)
-
+        if(page_size != null && page_size > 0) {
+            size = page_size
+        }
+        return clientSvc.getClientOrders(page,size)
     }
 
     /**

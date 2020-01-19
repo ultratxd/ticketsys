@@ -9,6 +9,7 @@ import com.cj.ticketsys.controller.dto.Result
 import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.entities.ClientGateLog
 import com.cj.ticketsys.entities.ClientSubOrder
+import com.cj.ticketsys.entities.PagedList
 
 /**
  *  @author wangliwei
@@ -23,6 +24,6 @@ interface ClientSvc {
     //fun updateClientOrder(orderBody: OrderReqBody): Result
     //fun updateClientSubOrder(subOrderBody: SubOrderReqBody): Result
     fun getClientGateLogs(page_num: Int, page_size: Int): ResultT<PageResult<ClientGateLog>>
-    fun getClientOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientOrderDto>>
+    fun getClientOrders(page_num: Int, page_size: Int): ResultT<PagedList<ClientOrderDto>>
     fun getClientSubOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientSubOrder>>
 }
