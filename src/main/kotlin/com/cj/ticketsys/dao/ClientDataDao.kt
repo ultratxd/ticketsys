@@ -158,7 +158,7 @@ interface ClientDataDao {
             "<script>" +
                     "select id,c_id,cloud_id,c_order_no,order_type,tkt_id,tkt_name,amount,unit_price,nums,per_nums,create_time,prints,use_date,enter_time,properties,c_pid from client_suborders" +
                     "<where>"+
-                    "<if test=\"id !=null\"> and c_pid=#{id}</if>" +
+                    "<if test=\"pid !=null\"> and c_pid=#{pid}</if>" +
                     "</where>" +
             "</script>"
     )
@@ -169,7 +169,7 @@ interface ClientDataDao {
             Result(column = "tkt_name", property = "ticketName"),
             Result(column = "c_pid", property = "clientParentId")
     )
-    fun selectByPid(@Param("id") id: Int): List<ClientSubOrder>
+    fun selectByPid(@Param("pid") pid: Int): List<ClientSubOrder>
 
 
     @Select(

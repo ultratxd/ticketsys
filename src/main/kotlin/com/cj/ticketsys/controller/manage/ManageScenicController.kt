@@ -17,6 +17,7 @@ import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
+@CrossOrigin(origins = ["*"],maxAge = 3600,allowCredentials = "true")
 @RestController
 @RequestMapping("/ota/v1/manage/scenic")
 class ManageScenicController : BaseController() {

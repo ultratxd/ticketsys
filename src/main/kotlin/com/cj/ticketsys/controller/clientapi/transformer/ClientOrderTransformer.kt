@@ -49,7 +49,7 @@ class ClientOrderTransformer : DocTransformer<ClientOrder, ClientOrderDto> {
         dto.ext3 = data.ext3
         dto.properties = data.properties
 
-        val subOrders = clientDataDao.selectByPid(dto.id)
+        val subOrders = clientDataDao.selectByPid(dto.clientId)
         val outSubOrders = ArrayList<ClientSubOrderDto>()
         for(subOrder in subOrders) {
             outSubOrders.add(subOrderTransformer.transform(subOrder)!!)

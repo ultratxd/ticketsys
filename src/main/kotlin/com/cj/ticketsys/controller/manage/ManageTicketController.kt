@@ -20,7 +20,6 @@ import com.google.common.primitives.Ints
 import java.lang.Exception
 import javax.servlet.http.HttpServletRequest
 
-
 @RestController
 @RequestMapping("/ota/v1/manage/ticket")
 class ManageTicketController : BaseController() {

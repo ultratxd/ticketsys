@@ -70,7 +70,7 @@ class ClientSvcImpl : ClientSvc {
     }
 
     private fun syncCloudOrderState(gLog: GateLogReqBody) {
-        
+
     }
 
     /**
@@ -97,7 +97,7 @@ class ClientSvcImpl : ClientSvc {
         //如果subOrders不为空，插入所有subOrders
         if (subOrders != null) {
             for (subOrder in subOrders) {
-                val localSubOrder = clientDataDao.queryOrder(subOrder.clientId)
+                val localSubOrder = clientDataDao.querySubOrder(subOrder.clientId)
                 if(localSubOrder != null) {
                     updateSubOrder(subOrder)
                 } else {
