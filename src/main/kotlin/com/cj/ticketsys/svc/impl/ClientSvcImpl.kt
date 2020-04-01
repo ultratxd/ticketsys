@@ -308,6 +308,20 @@ class ClientSvcImpl : ClientSvc {
         log.inPasses = gLog.inPasses
         log.outPasses = gLog.outPasses
         log.properties = gLog.properties
+
+        val scenicSpot = scenicSpotDao.get(gLog.scenicSpotId)
+        if(scenicSpot != null) {
+            log.scenicId = scenicSpot.pid
+            log.scenicSpotId = scenicSpot.id
+        }
+
+        if(gLog.scanDate != null) {
+            val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"),Locale.CHINESE)
+            cal.time = gLog.scanDate!!
+            log.year = cal.get(Calendar.YEAR)
+            log.month = cal.get(Calendar.MONTH) + 1
+            log.day = cal.get(Calendar.DATE)
+        }
         return log
     }
 

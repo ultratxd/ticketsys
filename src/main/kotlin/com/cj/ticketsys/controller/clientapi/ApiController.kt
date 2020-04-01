@@ -1,18 +1,24 @@
 package com.cj.ticketsys.controller.clientapi
 
 import com.cj.ticketsys.controller.clientapi.dto.ClientOrderDto
+import com.cj.ticketsys.controller.clientapi.dto.KValues
 import com.cj.ticketsys.controller.clientapi.vo.PageResult
 import com.cj.ticketsys.controller.dto.RESULT_FAIL
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.controller.dto.Result
 import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.controller.manage.dto.MRecommendDto
+import com.cj.ticketsys.dao.ClientDataDao
 import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.ClientSvc
 import com.cj.ticketsys.svc.DocTransformer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.lang.Exception
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.servlet.http.HttpServletRequest
+import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("/ota/v1/manage/sync")
@@ -22,7 +28,51 @@ class ApiController {
     private lateinit var clientSvc: ClientSvc
 
     @Autowired
+    private lateinit var clientDataDao: ClientDataDao
+
+    @Autowired
     private lateinit var orderTransformer: DocTransformer<ClientOrder, ClientOrderDto>
+
+    @GetMapping("/statistic/gate")
+    fun statisticGatePasses(startDate:String?,endDate:String?,spotId:Int?,type:Int?):ResultT<List<KValues<String, Int>>> {
+        if(startDate == null || endDate == null || spotId == null || type == null) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        var sDate:Date
+        var eDate:Date
+        try{
+            sDate = dateFormat.parse(startDate)
+            eDate = dateFormat.parse(endDate)
+        }catch(e:Exception){
+            return ResultT(com.cj.ticketsys.controller.dto.RESULT_FAIL, "日期格式错误")
+        }
+        val result = ArrayList<KValues<String, Int>>()
+         when(type) {
+             1 -> { //月
+
+                 val data = clientDataDao.statisticGateLogOfMonths(sDate,eDate, spotId)
+                 for (skv in data) {
+                     result.add(KValues("${skv.year}-${skv.month}", skv.value.toInt()))
+                 }
+             }
+             2 -> { //天
+                 val data = clientDataDao.statisticGateLogOfDays(sDate, eDate, spotId)
+                 for (skv in data) {
+                     result.add(KValues("${skv.year}-${skv.month}-${skv.day}", skv.value.toInt()))
+                 }
+             }
+             3 -> {
+                 val data = clientDataDao.statisticGateLogOfThisDay(sDate, spotId)
+                 result.add(KValues(dateFormat.format(sDate), data.toInt()))
+             }
+             else -> {
+                 return ResultT(RESULT_FAIL, "参数错误")
+             }
+         }
+        return ResultT(RESULT_SUCCESS, "OK",result)
+    }
 
     /**
      * 插入ClientGateLog
@@ -116,7 +166,4 @@ class ApiController {
     ): Boolean {
         return page_num > 0 && page_size > 0
     }
-
-
-
 }

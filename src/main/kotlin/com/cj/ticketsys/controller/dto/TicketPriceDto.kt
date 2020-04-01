@@ -1,5 +1,6 @@
 package com.cj.ticketsys.controller.dto
 
+import com.cj.ticketsys.controller.manage.dto.SpotItemDto
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 
@@ -34,4 +35,7 @@ open class TicketPriceDto(@JsonProperty("id") val id: Int) {
     var buyLimit: Int? = null
     @JsonProperty("buy_time")
     var buyTime: Int? = null
+
+    @JsonProperty("items")
+    var items:List<SpotItemDto> = ArrayList()
 }

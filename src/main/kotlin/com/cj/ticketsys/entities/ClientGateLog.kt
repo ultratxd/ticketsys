@@ -16,4 +16,10 @@ class ClientGateLog:PropertyEntity() {
     var perNums:Int = 0
     var inPasses:Int = 0
     var outPasses:Int = 0
+
+    var year:Int = 0
+    var month:Int = 0
+    var day:Int = 0
+    var scenicId:Int = 0
+    var scenicSpotId:Int = 0
 }

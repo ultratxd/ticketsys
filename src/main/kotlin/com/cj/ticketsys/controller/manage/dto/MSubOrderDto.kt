@@ -4,6 +4,7 @@ import com.cj.ticketsys.controller.dto.TicketSnapshotDto
 import com.cj.ticketsys.entities.PriceDiscountTypes
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MSubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
     @JsonProperty("create_time")
@@ -55,4 +56,7 @@ class MSubOrderDto(val id: Int,@JsonProperty("order_no") val orderNo: String) {
 
     @JsonProperty("ticket_snapshot")
     var ticketSnapshot: TicketSnapshotDto? = null
+
+    @JsonProperty("items")
+    var items:List<TicketOrderSpotItemDto> = ArrayList()
 }

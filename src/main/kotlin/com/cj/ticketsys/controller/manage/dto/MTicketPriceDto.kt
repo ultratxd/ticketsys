@@ -3,6 +3,7 @@ package com.cj.ticketsys.controller.manage.dto
 import com.cj.ticketsys.controller.dto.TicketUseDateDto
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MTicketPriceDto(val id: Int) {
     @JsonProperty("ticket_id")
@@ -46,4 +47,7 @@ class MTicketPriceDto(val id: Int) {
     var buyTime: Int? = null
     @JsonProperty("b2b_plu")
     var b2bPLU: String? = null
+
+    @JsonProperty("items")
+    var items:List<SpotItemDto> = ArrayList()
 }

@@ -1,7 +1,12 @@
 package com.cj.ticketsys.controller.dto
 
+import com.cj.ticketsys.controller.manage.dto.SpotItemDto
+import com.cj.ticketsys.controller.manage.dto.TicketOrderSpotItemDto
 import com.cj.ticketsys.entities.SubOrder
+import com.cj.ticketsys.entities.spotItem.SpotItem
+import com.cj.ticketsys.entities.spotItem.TicketOrderItem
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.SpotItemSvc
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -10,6 +15,12 @@ class SubOrderDocTransformer : DocTransformer<SubOrder, SubOrderDto> {
 
     @Autowired
     private lateinit var snapshotTransformer: DocTransformer<String, TicketSnapshotDto>
+
+    @Autowired
+    private lateinit var spotItemSvc: SpotItemSvc
+
+    @Autowired
+    private lateinit var orderItemTransformer: DocTransformer<TicketOrderItem, TicketOrderSpotItemDto>
 
     override fun transform(data: SubOrder): SubOrderDto? {
         val dto = SubOrderDto(data.id, data.orderId)
@@ -39,6 +50,17 @@ class SubOrderDocTransformer : DocTransformer<SubOrder, SubOrderDto> {
         dto.priceDiscountType = data.priceDiscountType.value
 
         dto.ticketSnapshot = snapshotTransformer.transform(data.snapshot ?: "")
+
+        /**
+         * 赠送的小项目
+         */
+        val orderItems = spotItemSvc.querySubOrderItems(data.id)
+        val itemDtos = ArrayList<TicketOrderSpotItemDto>()
+        for (oItem in orderItems) {
+            itemDtos.add(orderItemTransformer.transform(oItem)!!)
+        }
+        dto.items = itemDtos
+
         return dto
     }
 }

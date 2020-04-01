@@ -1,10 +1,8 @@
 package com.cj.ticketsys.dao
 
-import com.cj.ticketsys.entities.ClientGateLog
-import com.cj.ticketsys.entities.ClientOrder
-import com.cj.ticketsys.entities.ClientSubOrder
-import com.cj.ticketsys.entities.SubOrder
+import com.cj.ticketsys.entities.*
 import org.apache.ibatis.annotations.*
+import java.util.*
 
 @Mapper
 interface ClientDataDao {
@@ -13,15 +11,57 @@ interface ClientDataDao {
      * 插入ClientGateLog
      */
     @Insert(
-        "insert into client_gate_logs(c_id,c_order_no,c_order_sid,code,ctype,scan_date,scan_time,in_time,out_time,per_nums,in_passes,out_passes,properties)" +
-                " values(#{clientId},#{clientOrderNo},#{clientOrderSid},#{code},#{cType},#{scanDate},#{scanTime},#{inTime},#{outTime},#{perNums},#{inPasses},#{outPasses},#{properties})"
+        "insert into client_gate_logs(c_id,c_order_no,c_order_sid,code,ctype,scan_date,scan_time,in_time,out_time,per_nums,in_passes,out_passes,properties,y,m,d,scenic_id,scenic_spot_id)" +
+                " values(#{clientId},#{clientOrderNo},#{clientOrderSid},#{code},#{cType},#{scanDate},#{scanTime},#{inTime},#{outTime},#{perNums},#{inPasses},#{outPasses},#{properties},#{year},#{month},#{day},#{scenicId},#{scenicSpotId})"
     )
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertGateLog(log: ClientGateLog): Long
 
 
     @Select("select * from client_gate_logs where c_id=#{cid}")
+    @Results(
+        Result(column = "c_id", property = "clientId"),
+        Result(column = "c_order_no", property = "clientOrderNo"),
+        Result(column = "c_order_sid", property = "clientOrderSid"),
+        Result(column = "ctype", property = "cType"),
+        Result(column = "scan_date", property = "scanDate"),
+        Result(column = "scan_time", property = "scanTime"),
+        Result(column = "in_time", property = "inTime"),
+        Result(column = "out_time", property = "outTime"),
+        Result(column = "per_nums", property = "perNums"),
+        Result(column = "in_passes", property = "inPasses"),
+        Result(column = "out_passes", property = "outPasses"),
+        Result(column = "y", property = "year"),
+        Result(column = "m", property = "month"),
+        Result(column = "d", property = "day"),
+        Result(column = "scenic_id", property = "scenicId"),
+        Result(column = "scenic_spot_id", property = "scenicSpotId")
+    )
     fun queryGateLog(cid:Int): ClientGateLog?
+
+    /**
+     * 闸门统计
+     */
+
+    @Select("select year(scan_date) as y,MONTH(scan_date) as m,sum(in_passes) as cs from client_gate_logs where scenic_spot_id=#{spotId} and scan_date>=#{sDate} and scan_date<#{eDate} group by YEAR(scan_date),MONTH(scan_date)")
+    @Results(
+        Result(column = "y", property = "year"),
+        Result(column = "m", property = "month"),
+        Result(column = "cs", property = "value")
+    )
+    fun statisticGateLogOfMonths(sDate: Date, eDate:Date, spotId:Int): List<StatKeyVal>
+
+    @Select("select year(scan_date) as y,MONTH(scan_date) as m,DAY(scan_date) as d,sum(in_passes) as cs from client_gate_logs where scenic_spot_id=#{spotId} and scan_date>=#{sDate} and scan_date<#{eDate} group by year(scan_date),MONTH(scan_date),DAY(scan_date)")
+    @Results(
+        Result(column = "y", property = "year"),
+        Result(column = "m", property = "month"),
+        Result(column = "d", property = "day"),
+        Result(column = "cs", property = "value")
+    )
+    fun statisticGateLogOfDays(sDate: Date, eDate:Date, spotId:Int): List<StatKeyVal>
+
+    @Select("select ifnull(sum(in_passes),0) from client_gate_logs where scenic_spot_id=#{spotId} and scan_date=#{sDate}")
+    fun statisticGateLogOfThisDay(sDate: Date,spotId: Int): Long
 
 
     /**

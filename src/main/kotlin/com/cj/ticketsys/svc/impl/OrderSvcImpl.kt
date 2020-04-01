@@ -4,8 +4,11 @@ import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.OrderTicketCodeDao
 import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.entities.*
+import com.cj.ticketsys.entities.spotItem.TicketOfItem
+import com.cj.ticketsys.entities.spotItem.TicketOrderItem
 import com.cj.ticketsys.svc.InventoryManagement
 import com.cj.ticketsys.svc.OrderSvc
+import com.cj.ticketsys.svc.SpotItemSvc
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,6 +31,9 @@ class OrderSvcImpl : OrderSvc {
     @Autowired
     private lateinit var inventoryManagement: InventoryManagement
 
+    @Autowired
+    private lateinit var spotItemSvc: SpotItemSvc
+
     @Transactional(rollbackFor = [Exception::class])
     override fun create(order: Order, subOrder: ArrayList<SubOrder>): Boolean {
         val c = orderDao.insert(order)
@@ -43,6 +49,23 @@ class OrderSvcImpl : OrderSvc {
         } else {
             return false
         }
+        /**
+         * 添加赠送项目
+         */
+        val orderItems = ArrayList<TicketOrderItem>()
+        for(sub in subOrder) {
+            val items = spotItemSvc.queryTicketItems(sub.ticketPid)
+            for(item in items) {
+                val oItem = TicketOrderItem()
+                oItem.itemId = item.id
+                oItem.nums = item.personalNums * sub.nums
+                oItem.orderId = order.orderId
+                oItem.orderSubId = sub.id
+                orderItems.add(oItem)
+            }
+        }
+        spotItemSvc.addOrderItems(orderItems)
+
         return true
     }
 

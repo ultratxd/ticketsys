@@ -10,6 +10,7 @@ import com.cj.ticketsys.controller.manage.dto.MTicketPriceDto
 import com.cj.ticketsys.dao.*
 import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.SpotItemSvc
 import com.cj.ticketsys.svc.TicketSvc
 import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,6 +36,9 @@ class ManageTicketController : BaseController() {
 
     @Autowired
     private lateinit var ticketPriceDao: TicketPriceDao
+
+    @Autowired
+    private lateinit var spotItemSvc: SpotItemSvc
 
     @Autowired
     private lateinit var ticketTransformer: DocTransformer<Ticket, MTicketDto>
@@ -313,6 +317,7 @@ class ManageTicketController : BaseController() {
         @RequestParam("buy_limit", required = false) buyLimit: Int?,
         @RequestParam("buy_time", required = false) buyTime: Int?,
         @RequestParam("b2b_plu", required = false) b2bPLU: String?,
+        @RequestParam("item_ids", required = false) itemIds: String?,
         req: HttpServletRequest
     ): com.cj.ticketsys.controller.dto.Result {
         if (tid == null || tid <= 0) {
@@ -402,9 +407,21 @@ class ManageTicketController : BaseController() {
         }
         val ok = ticketSvc.createPrice(tp, useDate)
         if (ok) {
+            addTktPriceItems(tp,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "添加成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "添加失败")
+    }
+
+    fun addTktPriceItems(tp:TicketPrice,itemIds: String?) {
+        val iIds = itemIds?.split(",")
+        if(iIds == null || iIds.isEmpty()) {
+            return
+        }
+        for(itemId in iIds) {
+            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
+            spotItemSvc.addTicketItem(tp.tid,tp.id,item.id,item.personalNums)
+        }
     }
 
     fun checkCustomPricesProperty(txt: String): Boolean {
@@ -468,7 +485,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("idcard_prices", required = false) idCardPrices: String?,
         @RequestParam("buy_limit", required = false) buyLimit: Int?,
         @RequestParam("buy_time", required = false) buyTime: Int?,
-        @RequestParam("b2b_plu", required = false) b2bPLU: String?
+        @RequestParam("b2b_plu", required = false) b2bPLU: String?,
+        @RequestParam("item_ids", required = false) itemIds: String?
     ): com.cj.ticketsys.controller.dto.Result {
         if (id == null || id <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:id")
@@ -558,8 +576,21 @@ class ManageTicketController : BaseController() {
         }
         val ok = ticketSvc.updatePrice(tp, useDate)
         if (ok) {
+            updateTktPriceItems(tp,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
+    }
+
+    fun updateTktPriceItems(tp:TicketPrice,itemIds: String?) {
+        spotItemSvc.removeAllTicketItems(tp.id)
+        val iIds = itemIds?.split(",")
+        if(iIds == null || iIds.isEmpty()) {
+            return
+        }
+        for(itemId in iIds) {
+            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
+            spotItemSvc.addTicketItem(tp.tid,tp.id,item.id,item.personalNums)
+        }
     }
 }
