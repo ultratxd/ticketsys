@@ -35,6 +35,20 @@ interface TicketPriceDao {
     fun gets(tid: Int): List<TicketPrice>
 
     @Select(
+        "select * from ticket_price where tid=#{tid} and channel_type=#{channel} limit 1"
+    )
+    @Results(
+        Result(column = "usedate_id", property = "useDateId"),
+        Result(column = "channel_type", property = "channelType"),
+        Result(column = "create_time", property = "createTime"),
+        Result(column = "stock_limit_type", property = "stockLimitType"),
+        Result(column = "front_view", property = "frontView"),
+        Result(column = "refund_type", property = "refundType"),
+        Result(column = "plu", property = "b2bPLU")
+    )
+    fun getByChannel(tid:Int, channel: Int): TicketPrice?
+
+    @Select(
         "select * from ticket_price where state=1 and channel_type=#{channel}"
     )
     @Results(

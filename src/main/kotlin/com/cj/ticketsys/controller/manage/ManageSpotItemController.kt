@@ -2,9 +2,9 @@ package com.cj.ticketsys.controller.manage
 
 import com.cj.ticketsys.controller.BaseController
 import com.cj.ticketsys.controller.dto.*
-import com.cj.ticketsys.controller.manage.dto.SpotItemDto
-import com.cj.ticketsys.controller.manage.dto.SpotItemOrderDto
-import com.cj.ticketsys.controller.manage.dto.SpotItemPriceDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemOrderDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemPriceDto
 import com.cj.ticketsys.controller.manage.dto.TicketOfItemDto
 import com.cj.ticketsys.dao.ScenicSpotDao
 import com.cj.ticketsys.entities.ChannelTypes
@@ -30,28 +30,47 @@ class ManageSpotItemController :BaseController() {
     private lateinit var spotDao: ScenicSpotDao
 
     @Autowired
-    private lateinit var spotItemTransformer: DocTransformer<SpotItem, SpotItemDto>
+    private lateinit var MSpotItemTransformer: DocTransformer<SpotItem, MSpotItemDto>
 
     @Autowired
-    private lateinit var spotItemPriceTransformer: DocTransformer<SpotItemPrice, SpotItemPriceDto>
+    private lateinit var MSpotItemPriceTransformer: DocTransformer<SpotItemPrice, MSpotItemPriceDto>
 
     @Autowired
     private lateinit var tktOfItemTransformer : DocTransformer<TicketOfItem, TicketOfItemDto>
 
     @Autowired
-    private lateinit var orderTransformer: DocTransformer<SpotItemOrder, SpotItemOrderDto>
+    private lateinit var orderTransformerM: DocTransformer<SpotItemOrder, MSpotItemOrderDto>
 
     @GetMapping("/item/items")
     fun getItems(
         @RequestParam("scenic_sid", required = false) scenicSid: Int?
-    ): ResultT<List<SpotItemDto>> {
+    ): ResultT<List<MSpotItemDto>> {
         if(scenicSid == null || scenicSid <= 0) {
             return ResultT(RESULT_FAIL,"参数错误")
         }
         val items = spotItemSvc.querySpotItems(scenicSid)
-        val dtos = ArrayList<SpotItemDto>()
+        val dtos = ArrayList<MSpotItemDto>()
         for(item in items) {
-            dtos.add(spotItemTransformer.transform(item)!!)
+            dtos.add(MSpotItemTransformer.transform(item)!!)
+        }
+        return  ResultT(RESULT_SUCCESS,"ok",dtos)
+    }
+
+    @GetMapping("/item/items/channel")
+    fun getItemsByChannel(
+        @RequestParam("scenic_sid", required = false) scenicSid: Int?,
+        @RequestParam("channel_type", required = false) channelType: Int?
+    ): ResultT<List<MSpotItemDto>> {
+        if(scenicSid == null || scenicSid <= 0) {
+            return ResultT(RESULT_FAIL,"参数错误")
+        }
+        if(channelType == null || channelType <= 0) {
+            return ResultT(RESULT_FAIL,"参数错误")
+        }
+        val items = spotItemSvc.querySpotItemsByChannel(scenicSid,ChannelTypes.prase(channelType))
+        val dtos = ArrayList<MSpotItemDto>()
+        for(item in items) {
+            dtos.add(MSpotItemTransformer.transform(item)!!)
         }
         return  ResultT(RESULT_SUCCESS,"ok",dtos)
     }
@@ -59,12 +78,12 @@ class ManageSpotItemController :BaseController() {
     @GetMapping("/item/{id}")
     fun getItem(
         @PathVariable("id", required = false) id: Int
-    ): ResultT<SpotItemDto> {
+    ): ResultT<MSpotItemDto> {
         if(id <= 0) {
             return ResultT(RESULT_FAIL,"参数错误")
         }
         val item = spotItemSvc.getSpotItem(id) ?: return ResultT(RESULT_FAIL,"对象不存在")
-        val dto = spotItemTransformer.transform(item)
+        val dto = MSpotItemTransformer.transform(item)
         return ResultT(RESULT_SUCCESS,"ok",dto)
     }
 
@@ -136,16 +155,16 @@ class ManageSpotItemController :BaseController() {
     }
 
     @GetMapping("/item/prices/{itemId}")
-    fun getItmPrices(
+    fun getItemPrices(
         @PathVariable("itemId", required = false) itemId: Int
-    ):ResultT<List<SpotItemPriceDto>> {
+    ):ResultT<List<MSpotItemPriceDto>> {
         if(itemId <= 0) {
             return ResultT(RESULT_FAIL,"itemId:参数错误")
         }
         val itemPrices = spotItemSvc.querySpotItemPrices(itemId)
-        val itemPricesDtos = ArrayList<SpotItemPriceDto>()
+        val itemPricesDtos = ArrayList<MSpotItemPriceDto>()
         for(price in itemPrices) {
-            val dto = spotItemPriceTransformer.transform(price)!!
+            val dto = MSpotItemPriceTransformer.transform(price)!!
             itemPricesDtos.add(dto)
         }
         return ResultT(RESULT_SUCCESS,"成功",itemPricesDtos)
@@ -154,12 +173,12 @@ class ManageSpotItemController :BaseController() {
     @GetMapping("/item/price/{id}")
     fun getItemPrice(
         @PathVariable("id", required = false) id: Int
-    ):ResultT<SpotItemPriceDto> {
+    ):ResultT<MSpotItemPriceDto> {
         if(id <= 0) {
             return ResultT(RESULT_FAIL,"id:参数错误")
         }
         val price = spotItemSvc.getSpotItemPrice(id) ?: return ResultT(RESULT_FAIL,"对象不存在")
-        val dto = spotItemPriceTransformer.transform(price)!!
+        val dto = MSpotItemPriceTransformer.transform(price)!!
         return ResultT(RESULT_SUCCESS,"ok",dto)
     }
 
@@ -189,7 +208,7 @@ class ManageSpotItemController :BaseController() {
         if(state == null || state <= 0) {
             return Result(RESULT_FAIL,"state:参数错误")
         }
-        val itemPrice = spotItemSvc.getSpotItemPrice(itemId,channelType)
+        val itemPrice = spotItemSvc.getSpotItemPrice(itemId,ChannelTypes.prase(channelType))
         if(itemPrice != null) {
             return Result(RESULT_FAIL,"相同渠道已存在")
         }
@@ -273,27 +292,26 @@ class ManageSpotItemController :BaseController() {
     fun querySpotItemOrders(
         @RequestParam("order_id", required = false) orderId: String?,
         @RequestParam("pay_no", required = false) payNo: String?,
-        @RequestParam("scenic_sid", required = false) scenicSid: Int?,
         @RequestParam("state", required = false) state: Int?,
         @RequestParam("code", required = false) code: String?,
         @RequestParam("start_time", required = false) startTime: String?,
         @RequestParam("end_time", required = false) endTime: String?,
         @RequestParam("page", required = false) page: Int?,
         @RequestParam("size", required = false) size: Int?
-    ):ResultT<PagedList<SpotItemOrderDto>> {
+    ):ResultT<PagedList<MSpotItemOrderDto>> {
         if(!Strings.isNullOrEmpty(orderId)) {
             val order = spotItemSvc.getOrder(orderId!!) ?: return ResultT(RESULT_FAIL,"订单不存在")
-            val pList = PagedList(1,1,1, listOf(orderTransformer.transform(order)!!))
+            val pList = PagedList(1,1,1, listOf(orderTransformerM.transform(order)!!))
             return ResultT(RESULT_SUCCESS,"ok",pList)
         }
         if(!Strings.isNullOrEmpty(payNo)) {
             val order = spotItemSvc.getOrderByPayNo(orderId!!) ?: return ResultT(RESULT_FAIL,"订单不存在")
-            val pList = PagedList(1,1,1, listOf(orderTransformer.transform(order)!!))
+            val pList = PagedList(1,1,1, listOf(orderTransformerM.transform(order)!!))
             return ResultT(RESULT_SUCCESS,"ok",pList)
         }
         if(!Strings.isNullOrEmpty(code)) {
             val order = spotItemSvc.getOrderByCode(code!!) ?: return ResultT(RESULT_FAIL,"订单不存在")
-            val pList = PagedList(1,1,1, listOf(orderTransformer.transform(order)!!))
+            val pList = PagedList(1,1,1, listOf(orderTransformerM.transform(order)!!))
             return ResultT(RESULT_SUCCESS,"ok",pList)
         }
         var p = 1
@@ -305,21 +323,20 @@ class ManageSpotItemController :BaseController() {
             s = size
         }
         val query = SpotItemOrderQuery()
-        query.scenicSid = scenicSid
         query.state = state
         query.startTime = startTime
         val orders = spotItemSvc.queryOrders(query,p,s)
-        var pList = PagedList(p,s,orders.total,orders.list.map { a->orderTransformer.transform(a)!! })
+        var pList = PagedList(p,s,orders.total,orders.list.map { a->orderTransformerM.transform(a)!! })
         return ResultT(RESULT_SUCCESS,"OK",pList)
     }
 
     @GetMapping("/item/order/{orderId}")
     fun getSpotItemOrder(
         @PathVariable("orderId", required = false) orderId: String?
-    ):ResultT<SpotItemOrderDto> {
+    ):ResultT<MSpotItemOrderDto> {
         if(!Strings.isNullOrEmpty(orderId)) {
             val order = spotItemSvc.getOrder(orderId!!) ?: return ResultT(RESULT_FAIL,"订单不存在")
-            return ResultT(RESULT_SUCCESS,"ok",orderTransformer.transform(order)!!)
+            return ResultT(RESULT_SUCCESS,"ok",orderTransformerM.transform(order)!!)
         }
         return ResultT(RESULT_FAIL,"orderId:参数错误")
     }

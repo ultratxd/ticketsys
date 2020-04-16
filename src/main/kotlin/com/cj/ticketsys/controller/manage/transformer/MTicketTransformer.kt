@@ -45,6 +45,13 @@ class MTicketTransformer  : DocTransformer<Ticket, MTicketDto> {
         dto.createTime = data.createTime
         dto.displayOrder = data.displayOrder
 
+        if(data.openStartTime != null) {
+            dto.openStartTs = data.openStartTime!!.time / 1000L
+        }
+        if(data.openEndTime != null) {
+            dto.openEndTs = data.openEndTime!!.time / 1000L
+        }
+
 
         if(data.prices.any()) {
             val priceDtos = data.prices.map { a -> mTicketTransformer.transform(a)!! }

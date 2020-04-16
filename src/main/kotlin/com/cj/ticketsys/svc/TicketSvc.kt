@@ -9,6 +9,8 @@ interface TicketSvc {
 
     fun getTickets(scenicSid: Int, date: Date, channelType: ChannelTypes): Collection<Ticket>
 
+    fun getTickets(scenicSid: Int, cid:Int?, channelType: ChannelTypes, frontView:Boolean, date:Date): Collection<Ticket>
+
     fun getTicketInMonth(
         ticketId: Int,
         year: Int,

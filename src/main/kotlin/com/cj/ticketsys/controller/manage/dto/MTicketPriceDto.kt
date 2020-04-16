@@ -49,5 +49,5 @@ class MTicketPriceDto(val id: Int) {
     var b2bPLU: String? = null
 
     @JsonProperty("items")
-    var items:List<SpotItemDto> = ArrayList()
+    var itemMS:List<MSpotItemDto> = ArrayList()
 }

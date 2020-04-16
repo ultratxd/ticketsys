@@ -9,6 +9,7 @@ import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.lang.Exception
@@ -28,6 +29,7 @@ class GeneralTicketBuyer : TicketBuyer {
     private lateinit var ticketDao: TicketDao
 
     @Autowired
+    @Qualifier("TICKET_ID_BUILDER")
     private lateinit var idBuilder: IdBuilder
 
     @Autowired
@@ -152,7 +154,7 @@ class GeneralTicketBuyer : TicketBuyer {
         val buyOrder = Order()
         buyOrder.orderId = idBuilder.newId("ORDER")
         buyOrder.price = totalMoney
-        buyOrder.childs = order.buyTickets.size
+        buyOrder.childs = subOrders.size
         buyOrder.channelId = order.partner!!.id
         buyOrder.channelUid = order.channelUid
         buyOrder.ip = order.buyerIp

@@ -1,21 +1,28 @@
 package com.cj.ticketsys.svc.impl
 
-import com.cj.ticketsys.dao.OrderQuery
 import com.cj.ticketsys.dao.SpotItemDao
+import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.PagedList
 import com.cj.ticketsys.entities.spotItem.*
+import com.cj.ticketsys.svc.ItemOrderSvc
 import com.cj.ticketsys.svc.SpotItemSvc
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 
 @Service
-class SpotItemSvcImpl : SpotItemSvc {
+class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
 
     @Autowired
     private lateinit var spotItemDao: SpotItemDao
 
     override fun querySpotItems(scenicSpotId: Int): List<SpotItem> {
         return spotItemDao.querySpotItems(scenicSpotId)
+    }
+
+    override fun querySpotItemsByChannel(spotId:Int, channelType: ChannelTypes): List<SpotItem> {
+        return spotItemDao.querySpotItemsByChannel(spotId,channelType.value.toInt())
     }
 
     /**
@@ -53,8 +60,8 @@ class SpotItemSvcImpl : SpotItemSvc {
         return spotItemDao.getSpotItemPrice(id)
     }
 
-    override fun getSpotItemPrice(itemId: Int, channelType:Int):SpotItemPrice? {
-        return spotItemDao.getSpotItemPrice(itemId,channelType)
+    override fun getSpotItemPrice(itemId: Int, channelType:ChannelTypes):SpotItemPrice? {
+        return spotItemDao.getSpotItemPriceByChannel(itemId,channelType.value.toInt())
     }
 
     /**
@@ -71,8 +78,8 @@ class SpotItemSvcImpl : SpotItemSvc {
         return spotItemDao.updateSpotItemPrice(itemPrice) > 0
     }
 
-    override fun queryTicketItems(tktPriceId: Int): List<SpotItem> {
-        val tktOfItems = spotItemDao.getTicketPriceItems(tktPriceId)
+    override fun queryTicketItems(tktId: Int): List<SpotItem> {
+        val tktOfItems = spotItemDao.getTicketItems(tktId)
         val items = ArrayList<SpotItem>()
         for (it in tktOfItems) {
             val item = spotItemDao.getSpotItem(it.itemId)
@@ -90,21 +97,20 @@ class SpotItemSvcImpl : SpotItemSvc {
         return spotItemDao.getItemOfTickets(itemPriceId)
     }
 
-    override fun addTicketItem(tktId: Int, tktPriceId: Int, itemId: Int, nums: Int): Boolean {
+    override fun addTicketItem(tktId: Int, itemId: Int, nums: Int): Boolean {
         val tktOfItem = TicketOfItem()
         tktOfItem.ticketId = tktId
         tktOfItem.itemId = itemId
-        tktOfItem.ticketPriceId = tktPriceId
         tktOfItem.nums = nums
         return spotItemDao.insertTicketItem(tktOfItem) > 0
     }
 
-    override fun removeTicketItem(tktPriceId: Int, itemId: Int): Boolean {
-        return spotItemDao.deleteTicketItem(tktPriceId, itemId) > 0
+    override fun removeTicketItem(tktId: Int, itemId: Int): Boolean {
+        return spotItemDao.deleteTicketItem(tktId, itemId) > 0
     }
 
-    override fun removeAllTicketItems(tktPriceId: Int): Boolean {
-        return spotItemDao.deleteTicketItems(tktPriceId) > 0
+    override fun removeAllTicketItems(tktId: Int): Boolean {
+        return spotItemDao.deleteTicketItems(tktId) > 0
     }
 
     /**
@@ -171,5 +177,24 @@ class SpotItemSvcImpl : SpotItemSvc {
      */
     override fun querySubOrders(orderId:String):List<SpotItemSubOrder> {
         return spotItemDao.querySubOrderByOrderId(orderId)
+    }
+
+    /** 订单 **/
+    @Transactional(rollbackFor = [Exception::class])
+    override fun create(order: SpotItemOrder, subOrder: ArrayList<SpotItemSubOrder>): Boolean {
+        val c = spotItemDao.insertOrder(order)
+        if (c > 0) {
+            for (sub in subOrder) {
+                val sc = spotItemDao.insertSubOrder(sub)
+                if (sc <= 0) {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
+                    return false
+                }
+                spotItemDao.incrSpotItemPriceSolds(sub.itemPid, sub.nums)
+            }
+        } else {
+            return false
+        }
+        return true
     }
 }

@@ -169,10 +169,9 @@ class TicketController : BaseController() {
         }
 
         val partner = partnerDao.get(partnerId!!) ?: return ResultT(RESULT_FAIL, "商户不存在")
-        val tickets = ticketDao.gets(sid, cid, partner.channelType,true)
+        val tickets = ticketSvc.getTickets(sid, cid, partner.channelType,true, Utils.intToDate(date))
         val dtos = ArrayList<TicketDto>()
         for (ticket in tickets) {
-            priceBinder.bind(ticket, partner.channelType, Utils.intToDate(date))
             val dto = ticketDocTransformer.transform(ticket)!!
             dtos.add(dto)
         }

@@ -94,12 +94,12 @@ class MSubOrderDocTransformer : DocTransformer<SubOrder, MSubOrderDto> {
         /**
          * 赠送的小项目
          */
-        val orderItems = spotItemSvc.querySubOrderItems(data.id)
-        val itemDtos = ArrayList<TicketOrderSpotItemDto>()
-        for (oItem in orderItems) {
-            itemDtos.add(orderItemTransformer.transform(oItem)!!)
-        }
-        dto.items = itemDtos
+//        val orderItems = spotItemSvc.querySubOrderItems(data.id)
+//        val itemDtos = ArrayList<TicketOrderSpotItemDto>()
+//        for (oItem in orderItems) {
+//            itemDtos.add(orderItemTransformer.transform(oItem)!!)
+//        }
+//        dto.items = itemDtos
 
         return dto
     }

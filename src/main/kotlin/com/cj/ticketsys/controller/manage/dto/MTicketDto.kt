@@ -41,4 +41,10 @@ class MTicketDto(val id: Int) {
 
     @JsonProperty("related_spots")
     var relatedSpots: MutableList<MScenicSpotDto> = ArrayList()
+
+    @JsonProperty("open_start_ts")
+    var openStartTs:Long? = null
+
+    @JsonProperty("open_end_ts")
+    var openEndTs:Long? = null
 }

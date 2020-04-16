@@ -13,7 +13,7 @@ class TicketOrderSpotItemDto :Serializable{
     @JsonProperty("item_id")
     var itemId:Int = 0
     @JsonProperty("item")
-    var item:SpotItemDto? = null
+    var itemM:MSpotItemDto? = null
     @JsonProperty("nums")
     var nums: Int = 0
 }

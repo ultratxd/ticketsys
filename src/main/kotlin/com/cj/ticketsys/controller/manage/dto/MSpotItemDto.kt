@@ -3,13 +3,15 @@ package com.cj.ticketsys.controller.manage.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.io.Serializable
 
-class SpotItemDto : Serializable {
+class MSpotItemDto : Serializable {
     @JsonProperty("id")
     var id:Int = 0
     @JsonProperty("scenic_id")
     var scenicId:Int = 0
     @JsonProperty("scenic_spot_id")
     var scenicSpotId:Int = 0
+    @JsonProperty("scenic_spot_name")
+    var scenicSpotName:String? = null
     @JsonProperty("name")
     var name:String = ""
     @JsonProperty("desc1")
@@ -23,5 +25,5 @@ class SpotItemDto : Serializable {
     @JsonProperty("enabled")
     var enabled:Boolean = true
     @JsonProperty("prices")
-    var prices:List<SpotItemPriceDto> = ArrayList()
+    var priceMS:List<MSpotItemPriceDto> = ArrayList()
 }

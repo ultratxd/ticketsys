@@ -12,7 +12,7 @@ interface SpotItemDao {
     @Select("select * from spot_items where id=#{id}")
     @Results(
         Result(column = "scenic_id", property = "scenicId"),
-        Result(column = "scenic_spot_id", property = "scenicSpotId"),
+        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "desc1", property = "desc1"),
         Result(column = "desc2", property = "desc2"),
         Result(column = "per_nums", property = "personalNums"),
@@ -23,7 +23,7 @@ interface SpotItemDao {
     @Select("select * from spot_items where scenic_sid=#{spotId}")
     @Results(
         Result(column = "scenic_id", property = "scenicId"),
-        Result(column = "scenic_spot_id", property = "scenicSpotId"),
+        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "desc1", property = "desc1"),
         Result(column = "desc2", property = "desc2"),
         Result(column = "per_nums", property = "personalNums"),
@@ -31,8 +31,20 @@ interface SpotItemDao {
     )
     fun querySpotItems(spotId:Int): List<SpotItem>
 
+    @Select("select si.* from spot_items si join spot_item_prices sip on si.id=sip.item_id" +
+            " where si.scenic_sid=#{spotId} and sip.channel_type=#{channelType}")
+    @Results(
+        Result(column = "scenic_id", property = "scenicId"),
+        Result(column = "scenic_sid", property = "scenicSpotId"),
+        Result(column = "desc1", property = "desc1"),
+        Result(column = "desc2", property = "desc2"),
+        Result(column = "per_nums", property = "personalNums"),
+        Result(column = "create_time", property = "createTime")
+    )
+    fun querySpotItemsByChannel(spotId:Int, channelType: Int): List<SpotItem>
+
     @Insert("insert into spot_items(scenic_id,scenic_sid,name,desc1,desc2,per_nums,price,create_time,enabled,properties) " +
-            "values(#{scenicId},#{scenicSpotId},#{name},#{desc1},#{desc2},#{personalNums},#{price},#{enabled},#{properties})")
+            "values(#{scenicId},#{scenicSpotId},#{name},#{desc1},#{desc2},#{personalNums},#{price},#{createTime},#{enabled},#{properties})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertSpotItem(item:SpotItem):Long
 
@@ -59,19 +71,28 @@ interface SpotItemDao {
     )
     fun querySpotItemPrices(itemId:Int): List<SpotItemPrice>
 
-    @Insert("insert into spot_item_prices(item_id,name,desc,price,unit,channel_type,state,stocks,solds,create_time,properties) " +
+    @Insert("insert into spot_item_prices(item_id,`name`,`desc`,price,`unit`,channel_type,state,stocks,solds,create_time,properties) " +
             "values(#{itemId},#{name},#{desc},#{price},#{unit},#{channelType},#{state},#{stocks},#{solds},#{createTime},#{properties})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insertSpotItemPrice(price:SpotItemPrice):Long
 
     @Update(
-        "update spot_item_prices set name=#{name},desc=#{desc},price=#{price},unit=#{unit},state=#{state}," +
+        "update spot_item_prices set `name`=#{name},`desc`=#{desc},price=#{price},`unit`=#{unit},state=#{state}," +
                 "stocks=#{stocks},properties=#{properties} where id=#{id}"
     )
     fun updateSpotItemPrice(price: SpotItemPrice):Long
 
     @Select("select * from spot_item_prices where item_id=#{itemId} and channel_type=#{channelType}")
-    fun getSpotItemPrice(itemId:Int, channelType:Int):SpotItemPrice?
+    @Results(
+        Result(column = "item_id", property = "itemId"),
+        Result(column = "channel_type", property = "channelType")
+    )
+    fun getSpotItemPriceByChannel(itemId:Int, channelType:Int):SpotItemPrice?
+
+    @Update(
+        "update spot_item_prices set solds=solds+#{sells} where id=#{id}"
+    )
+    fun incrSpotItemPriceSolds(id:Int,sells:Int):Long
 
     /**
      * spotItemOrder
@@ -79,15 +100,14 @@ interface SpotItemDao {
     @Select("select * from spot_item_orders where order_id=#{orderId}")
     @Results(
         Result(column = "order_id", property = "orderId"),
-        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "ch_id", property = "channelId"),
         Result(column = "ch_uid", property = "channelUid"),
         Result(column = "price_discount_type", property = "priceDiscountTypes")
     )
-    fun getOrder(orderId:String):SpotItemOrder
+    fun getOrder(orderId:String):SpotItemOrder?
 
-    @Insert("insert into spot_item_orders(order_id,create_time,nums,total_price,pay_time,pay_no,refund_time,refund_no,scenic_id,scenic_sid,state,ch_id,ch_uid,code,price_discount_type,properties) " +
-            "values(#{orderId},#{createTime},#{nums},#{totalPrice},#{payTime},#{payNo},#{refundTime},#{refundNo},#{scenicId},#{scenicSpotId},#{state},#{channelId},#{channelUid},#{code},#{priceDiscountTypes},#{properties})")
+    @Insert("insert into spot_item_orders(order_id,create_time,nums,total_price,pay_time,pay_no,refund_time,refund_no,state,ch_id,ch_uid,code,buy_type,price_discount_type,properties) " +
+            "values(#{orderId},#{createTime},#{nums},#{totalPrice},#{payTime},#{payNo},#{refundTime},#{refundNo},#{state},#{channelId},#{channelUid},#{code},#{buyType},#{priceDiscountTypes},#{properties})")
     fun insertOrder(order:SpotItemOrder):Long
 
     @Update(
@@ -101,16 +121,16 @@ interface SpotItemDao {
 
     @Select("<script>select * from spot_item_orders " +
             "<where>" +
-            "<if test=\"scenicSid !=null\">and scenic_sid=#{scenicSid}</if>" +
             "<if test=\"state !=null\">and state=#{state}</if>" +
             "<if test=\"startTime !=null\">and create_time > #{startTime}</if>" +
-            "<if test=\"endTime !=null\">and create_time < #{endTime}</if>" +
+            "<if test=\"endTime !=null\">and create_time &lt; #{endTime}</if>" +
+            "<if test=\"channelUid !=null\">and ch_uid = #{channelUid}</if>" +
+            "<if test=\"channelId !=null\">and ch_id = #{channelId}</if>" +
             "</where>" +
             "limit #{offset},#{size}" +
             "</script>")
     @Results(
         Result(column = "order_id", property = "orderId"),
-        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "ch_id", property = "channelId"),
         Result(column = "ch_uid", property = "channelUid"),
         Result(column = "price_discount_type", property = "priceDiscountTypes")
@@ -119,10 +139,11 @@ interface SpotItemDao {
 
     @Select("<script>select count(0) from spot_item_orders " +
             "<where>" +
-            "<if test=\"scenicSid !=null\">and scenic_sid=#{scenicSid}</if>" +
             "<if test=\"state !=null\">and state=#{state}</if>" +
             "<if test=\"startTime !=null\">and create_time > #{startTime}</if>" +
-            "<if test=\"endTime !=null\">and create_time < #{endTime}</if>" +
+            "<if test=\"endTime !=null\">and create_time &lt; #{endTime}</if>" +
+            "<if test=\"channelUid !=null\">and ch_uid = #{channelUid}</if>" +
+            "<if test=\"channelId !=null\">and ch_id = #{channelId}</if>" +
             "</where>" +
             "</script>")
     fun queryOrdersCount(query:SpotItemOrderQuery): Long
@@ -130,7 +151,6 @@ interface SpotItemDao {
     @Select("select * from spot_item_orders where pay_no=#{payNo}")
     @Results(
         Result(column = "order_id", property = "orderId"),
-        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "ch_id", property = "channelId"),
         Result(column = "ch_uid", property = "channelUid"),
         Result(column = "price_discount_type", property = "priceDiscountTypes")
@@ -140,7 +160,6 @@ interface SpotItemDao {
     @Select("select * from spot_item_orders where code=#{code}")
     @Results(
         Result(column = "order_id", property = "orderId"),
-        Result(column = "scenic_sid", property = "scenicSpotId"),
         Result(column = "ch_id", property = "channelId"),
         Result(column = "ch_uid", property = "channelUid"),
         Result(column = "price_discount_type", property = "priceDiscountTypes")
@@ -151,10 +170,13 @@ interface SpotItemDao {
      * spotItemSubOrder
      */
     @Select("select * from spot_item_suborders where id=#{id}")
-    fun getSubOrder(orderId:String):SpotItemSubOrder
+    @Results(
+        Result(column = "scenic_sid", property = "scenicSpotId")
+    )
+    fun getSubOrder(orderId:String):SpotItemSubOrder?
 
-    @Insert("insert into spot_item_suborders(order_id,item_id,price,unit_price,nums,create_time,used,properties) " +
-            "values(#{orderId},#{itemId},#{price},#{unitPrice},#{nums},#{createTime},#{used},#{properties})")
+    @Insert("insert into spot_item_suborders(order_id,item_id,item_pid,price,unit_price,use_date,nums,per_nums,create_time,used,scenic_id,scenic_sid,properties) " +
+            "values(#{orderId},#{itemId},#{itemPid},#{price},#{unitPrice},#{useDate},#{nums},#{perNums},#{createTime},#{used},#{scenicId},#{scenicSpotId},#{properties})")
     fun insertSubOrder(subOrder: SpotItemSubOrder):Long
 
     @Update(
@@ -163,6 +185,9 @@ interface SpotItemDao {
     fun updateSubOrder(subOrder:SpotItemSubOrder):Long
 
     @Select("select * from spot_item_suborders where order_id=#{orderId}")
+    @Results(
+        Result(column = "scenic_sid", property = "scenicSpotId")
+    )
     fun querySubOrderByOrderId(orderId:String):List<SpotItemSubOrder>
 
 
@@ -175,7 +200,7 @@ interface SpotItemDao {
         Result(column = "item_order_id", property = "itemOrderId"),
         Result(column = "scenic_id", property = "scenicSpotId")
     )
-    fun getVerificationByTkt(ticketOrderId:String):SpotItemVerificiation
+    fun getVerificationByTkt(ticketOrderId:String):SpotItemVerificiation?
 
     @Select("select * from spot_item_verifications where item_order_id=#{itemOrderId}")
     @Results(
@@ -189,22 +214,22 @@ interface SpotItemDao {
             "values(#{ticketOrderId},#{itemOrderId},#{orderType},#{createTime},#{nums},#{verifier},#{scenicSpotId},#{properties})")
     fun insertVerification(spotItemVerificiation: SpotItemVerificiation) :Long
 
-    @Update(
-        "update spot_item_verifications "
-    )
-    fun updateVerification(spotItemVerificiation: SpotItemVerificiation):Long
+//    @Update(
+//        "update spot_item_verifications "
+//    )
+//    fun updateVerification(spotItemVerificiation: SpotItemVerificiation):Long
 
     /**
      * TktSpotItem
      */
-    @Select("select * from ticket_spot_items where tkt_pid=#{tktPriceId}")
+    @Select("select * from ticket_spot_items where tkt_id=#{tktId}")
     @Results(
         Result(column = "tkt_id", property = "ticketId"),
         Result(column = "tkt_pid", property = "ticketPriceId"),
         Result(column = "item_id", property = "itemId"),
         Result(column = "item_pid", property = "itemPriceId")
     )
-    fun getTicketPriceItems(tktPriceId:Int):List<TicketOfItem>
+    fun getTicketItems(tktId:Int):List<TicketOfItem>
 
     @Select("select * from ticket_spot_items where item_pid=#{itemPriceId}")
     @Results(
@@ -215,17 +240,17 @@ interface SpotItemDao {
     )
     fun getItemOfTickets(itemPriceId:Int):List<TicketOfItem>
 
-    @Insert("insert into ticket_spot_items(tkt_id,tkt_pid,item_pid,item_id,nums,properties) values(#{ticketId},#{ticketPriceId},#{itemPriceId},#{itemId},#{nums},#{properties})")
+    @Insert("insert into ticket_spot_items(tkt_id,item_pid,item_id,nums,properties) values(#{ticketId},#{itemPriceId},#{itemId},#{nums},#{properties})")
     fun insertTicketItem(ticketItem:TicketOfItem):Long
 
-    @Update("update ticket_spot_items set nums=nums+#{nums} where tkt_pid=#{tktPid} and itemId=#{itemId}")
-    fun updateTicketItemNums(tktPid:Int,itemId:Int,nums:Int):Long
+    @Update("update ticket_spot_items set nums=nums+#{nums} where tkt_id=#{tktId} and itemId=#{itemId}")
+    fun updateTicketItemNums(tktId:Int,itemId:Int,nums:Int):Long
 
-    @Delete("delete from ticket_spot_items where tkt_pid=#{tktPid} and item_id=#{itemId}")
-    fun deleteTicketItem(tktPid:Int,itemId:Int):Long
+    @Delete("delete from ticket_spot_items where tkt_id=#{tktId} and item_id=#{itemId}")
+    fun deleteTicketItem(tktId:Int,itemId:Int):Long
 
-    @Delete("delete from ticket_spot_items where tkt_pid=#{tktPid}")
-    fun deleteTicketItems(tktPid:Int):Long
+    @Delete("delete from ticket_spot_items where tkt_id=#{tktId}")
+    fun deleteTicketItems(tktId:Int):Long
 
     /**
      * OrderSpotItem

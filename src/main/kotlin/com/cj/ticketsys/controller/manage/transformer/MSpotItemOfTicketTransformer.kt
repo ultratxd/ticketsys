@@ -33,15 +33,10 @@ class MSpotItemOfTicketTransformer : DocTransformer<TicketOfItem, TicketOfItemDt
         dto.itemPriceId = data.itemPriceId
         dto.nums= data.nums
         dto.ticketId = data.ticketId
-        dto.ticketPriceId = data.ticketPriceId
 
         val ticket = ticketDao.get(data.ticketId)
         if(ticket != null) {
             dto.ticket = ticketTransformer.transform(ticket)!!
-        }
-        val tPrice = ticketPriceDao.get(data.ticketPriceId)
-        if(tPrice != null) {
-            dto.ticketPrice = priceTransformer.transform(tPrice)!!
         }
         return dto
     }

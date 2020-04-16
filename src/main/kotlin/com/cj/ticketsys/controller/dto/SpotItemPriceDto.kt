@@ -1,4 +1,4 @@
-package com.cj.ticketsys.controller.manage.dto
+package com.cj.ticketsys.controller.dto
 
 import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.OrderStates

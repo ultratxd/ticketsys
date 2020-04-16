@@ -1,6 +1,6 @@
 package com.cj.ticketsys.controller.dto
 
-import com.cj.ticketsys.controller.manage.dto.SpotItemDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemDto
 import com.cj.ticketsys.dao.TicketUseDateDao
 import com.cj.ticketsys.entities.TicketPrice
 import com.cj.ticketsys.entities.TicketUseDate
@@ -23,7 +23,7 @@ class TicketPriceTransformer: DocTransformer<TicketPrice,TicketPriceDto> {
     private lateinit var spotItemSvc: SpotItemSvc
 
     @Autowired
-    private lateinit var spotItemTransformer: DocTransformer<SpotItem, SpotItemDto>
+    private lateinit var MSpotItemTransformer: DocTransformer<SpotItem, MSpotItemDto>
 
     override fun transform(data: TicketPrice): TicketPriceDto? {
         val dto = TicketPriceDto(data.id)
@@ -51,12 +51,12 @@ class TicketPriceTransformer: DocTransformer<TicketPrice,TicketPriceDto> {
         /**
          * 赠送小项目
          */
-        val items = spotItemSvc.queryTicketItems(data.id)
-        val itemDtos = ArrayList<SpotItemDto>()
-        for(item in items) {
-            itemDtos.add(spotItemTransformer.transform(item)!!)
-        }
-        dto.items = itemDtos
+//        val items = spotItemSvc.queryTicketItems(data.id)
+//        val itemDtos = ArrayList<MSpotItemDto>()
+//        for(item in items) {
+//            itemDtos.add(MSpotItemTransformer.transform(item)!!)
+//        }
+//        dto.itemMS = itemDtos
 
         return dto
     }

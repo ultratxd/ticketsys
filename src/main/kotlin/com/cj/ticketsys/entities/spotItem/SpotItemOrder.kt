@@ -1,5 +1,6 @@
 package com.cj.ticketsys.entities.spotItem
 
+import com.cj.ticketsys.entities.BuyTypes
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PriceDiscountTypes
 import com.cj.ticketsys.entities.PropertyEntity
@@ -14,11 +15,10 @@ class SpotItemOrder : PropertyEntity() {
     var payNo:String? = null
     var refundTime:Date? = null
     var refundNo:String? = null
-    var scenicId:Int = 0
-    var scenicSpotId:Int = 0
     var state:OrderStates = OrderStates.Init
     var channelId:String = ""
     var channelUid:String = ""
     var code:String = ""
+    var buyType:BuyTypes = BuyTypes.Offline
     var priceDiscountTypes:PriceDiscountTypes = PriceDiscountTypes.Nothing
 }

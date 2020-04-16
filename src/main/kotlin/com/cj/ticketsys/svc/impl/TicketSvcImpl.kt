@@ -54,9 +54,51 @@ class TicketSvcImpl : TicketSvc {
     override fun getTickets(scenicSid: Int, date: Date, channelType: ChannelTypes): Collection<Ticket> {
         val tickets = ticketDao.gets(scenicSid)
         for (ticket in tickets) {
-            priceBinder.bind(ticket, channelType, date)
+            val prices = priceBinder.bind(ticket, channelType, date)
         }
-        return tickets
+
+        /** 过滤 **/
+        return filterOutTickets(tickets, channelType)
+    }
+
+    override fun getTickets(scenicSid: Int, cid:Int?, channelType: ChannelTypes, frontView:Boolean, date:Date): Collection<Ticket> {
+        val tickets = ticketDao.gets(scenicSid, cid, channelType,frontView)
+        for (ticket in tickets) {
+            val prices = priceBinder.bind(ticket, channelType, date)
+        }
+        /** 过滤 **/
+        return filterOutTickets(tickets, channelType)
+    }
+
+    private fun filterOutTickets(tickets:List<Ticket>, channelType: ChannelTypes): Collection<Ticket> {
+        val outs = ArrayList<Ticket>()
+        for (tkt in tickets) {
+
+            if(tkt.openStartTime != null) {
+                if(System.currentTimeMillis() < tkt.openStartTime!!.time) {
+                    continue
+                }
+            }
+            if(tkt.openEndTime != null) {
+                if(System.currentTimeMillis() > tkt.openEndTime!!.time) {
+                    continue
+                }
+            }
+
+            if(tkt.frontView) {
+                if(tkt.prices.size > 0) {
+                    if(tkt.prices.first().frontView) {
+                        outs.add(tkt)
+                    }
+                }else{
+                    val cPrice = ticketPriceDao.getByChannel(tkt.id, channelType.code())
+                    if(cPrice != null && cPrice.frontView) {
+                        outs.add(tkt)
+                    }
+                }
+            }
+        }
+        return outs
     }
 
     override fun getTicketInMonth(

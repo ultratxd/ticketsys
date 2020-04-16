@@ -1,9 +1,7 @@
 package com.cj.ticketsys.controller.dto
 
-import com.cj.ticketsys.controller.manage.dto.SpotItemDto
 import com.cj.ticketsys.controller.manage.dto.TicketOrderSpotItemDto
 import com.cj.ticketsys.entities.SubOrder
-import com.cj.ticketsys.entities.spotItem.SpotItem
 import com.cj.ticketsys.entities.spotItem.TicketOrderItem
 import com.cj.ticketsys.svc.DocTransformer
 import com.cj.ticketsys.svc.SpotItemSvc
@@ -54,12 +52,12 @@ class SubOrderDocTransformer : DocTransformer<SubOrder, SubOrderDto> {
         /**
          * 赠送的小项目
          */
-        val orderItems = spotItemSvc.querySubOrderItems(data.id)
-        val itemDtos = ArrayList<TicketOrderSpotItemDto>()
-        for (oItem in orderItems) {
-            itemDtos.add(orderItemTransformer.transform(oItem)!!)
-        }
-        dto.items = itemDtos
+//        val orderItems = spotItemSvc.querySubOrderItems(data.id)
+//        val itemDtos = ArrayList<TicketOrderSpotItemDto>()
+//        for (oItem in orderItems) {
+//            itemDtos.add(orderItemTransformer.transform(oItem)!!)
+//        }
+//        dto.items = itemDtos
 
         return dto
     }

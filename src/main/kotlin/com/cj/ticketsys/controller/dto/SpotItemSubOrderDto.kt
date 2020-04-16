@@ -1,4 +1,4 @@
-package com.cj.ticketsys.controller.manage.dto
+package com.cj.ticketsys.controller.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.io.Serializable
@@ -11,17 +11,19 @@ class SpotItemSubOrderDto: Serializable {
     var orderId:String? = null
     @JsonProperty("item_id")
     var itemId:Int? = null
+    @JsonProperty("item_pid")
+    var itemPid:Int? = null
     @JsonProperty("price")
     var price:Double? = null
     @JsonProperty("unit_price")
     var unitPrice:Double? = null
     @JsonProperty("nums")
     var nums:Int? = null
-    @JsonProperty("create_time")
-    var createTime: Date? = null
+    @JsonProperty("per_nums")
+    var perNums:Int? = null
     @JsonProperty("used")
     var used:Int? = null
 
     @JsonProperty("item")
-    var item:SpotItemDto? = null
+    var itemM:SpotItemDto? = null
 }

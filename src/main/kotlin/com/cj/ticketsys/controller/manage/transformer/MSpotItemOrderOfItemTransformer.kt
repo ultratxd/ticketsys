@@ -1,8 +1,7 @@
 package com.cj.ticketsys.controller.manage.transformer
 
-import com.cj.ticketsys.controller.manage.dto.SpotItemDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemDto
 import com.cj.ticketsys.controller.manage.dto.TicketOrderSpotItemDto
-import com.cj.ticketsys.dao.SpotItemDao
 import com.cj.ticketsys.entities.spotItem.SpotItem
 import com.cj.ticketsys.entities.spotItem.TicketOrderItem
 import com.cj.ticketsys.svc.DocTransformer
@@ -17,7 +16,7 @@ class MSpotItemOrderOfItemTransformer: DocTransformer<TicketOrderItem, TicketOrd
     private lateinit var spotItemSvc: SpotItemSvc
 
     @Autowired
-    private lateinit var  itemTransformer: DocTransformer<SpotItem, SpotItemDto>
+    private lateinit var  itemTransformerM: DocTransformer<SpotItem, MSpotItemDto>
 
     override fun transform(data: TicketOrderItem): TicketOrderSpotItemDto? {
         val dto = TicketOrderSpotItemDto()
@@ -28,7 +27,7 @@ class MSpotItemOrderOfItemTransformer: DocTransformer<TicketOrderItem, TicketOrd
         dto.orderSubId = data.orderSubId
         val item = spotItemSvc.getSpotItem(data.itemId)
         if(item != null) {
-            dto.item = itemTransformer.transform(item)
+            dto.itemM = itemTransformerM.transform(item)
         }
         return dto
     }

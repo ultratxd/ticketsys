@@ -1,4 +1,4 @@
-package com.cj.ticketsys.controller.manage.dto
+package com.cj.ticketsys.controller.dto
 
 import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PriceDiscountTypes
@@ -34,15 +34,9 @@ class SpotItemOrderDto : Serializable {
     var scenicSpotName:String = ""
     @JsonProperty("state")
     var state: OrderStates = OrderStates.Init
-    @JsonProperty("channel_id")
-    var channelId:String = ""
-    @JsonProperty("channel_uid")
-    var channelUid:String = ""
-    @JsonProperty("code")
-    var code:String = ""
     @JsonProperty("price_discount_type")
     var priceDiscountTypes: PriceDiscountTypes = PriceDiscountTypes.Nothing
 
     @JsonProperty("sub_orders")
-    var subOrders:List<SpotItemSubOrderDto> = ArrayList()
+    var subOrders:MutableList<SpotItemSubOrderDto> = ArrayList()
 }

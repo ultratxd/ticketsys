@@ -103,7 +103,7 @@ interface ClientDataDao {
             Result(column = "tkt_name", property = "ticketName"),
             Result(column = "c_pid", property = "clientParentId")
     )
-    fun querySubOrder(cid:Int): SubOrder?
+    fun querySubOrder(cid:Int): ClientSubOrder?
 
     /**
      * 修改ClientGateLog
@@ -118,7 +118,7 @@ interface ClientDataDao {
                     "<if test=\"code !=''\">, code=#{code}</if>" +
                     "<if test=\"cType !=0\">, ctype=#{cType}</if>" +
                     "<if test=\"scanTime !=0\">, scan_time=#{scanTime}</if>" +
-                    "<if test=\"scan_date !=null\">, scan_date=#{scanDate}</if>" +
+                    "<if test=\"scanDate !=null\">, scan_date=#{scanDate}</if>" +
                     "<if test=\"inTime !=null\">, in_time=#{inTime}</if>" +
                     "<if test=\"outTime !=null\">, out_time=#{outTime}</if>" +
                     "<if test=\"perNums !=0\">, per_nums=#{perNums}</if>" +

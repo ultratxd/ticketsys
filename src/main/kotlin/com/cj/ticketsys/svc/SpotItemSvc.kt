@@ -1,6 +1,7 @@
 package com.cj.ticketsys.svc
 
 import com.cj.ticketsys.dao.OrderQuery
+import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.PagedList
 import com.cj.ticketsys.entities.spotItem.*
 
@@ -10,6 +11,11 @@ interface SpotItemSvc {
      * 获取景点项目
      */
     fun querySpotItems(scenicSpotId:Int):List<SpotItem>
+
+    /**
+     * 有指定渠道的价格的项目
+     */
+    fun querySpotItemsByChannel(spotId:Int, channelType: ChannelTypes): List<SpotItem>
 
     /**
      * 获取单个景点项目
@@ -36,7 +42,7 @@ interface SpotItemSvc {
      */
     fun getSpotItemPrice(id:Int):SpotItemPrice?
 
-    fun getSpotItemPrice(itemId: Int, channelType:Int):SpotItemPrice?
+    fun getSpotItemPrice(itemId: Int, channelType:ChannelTypes):SpotItemPrice?
 
     /**
      * 添加项目渠道价格
@@ -51,7 +57,7 @@ interface SpotItemSvc {
     /**
      * 获取票价赠送项目
      */
-    fun queryTicketItems(tktPriceId:Int):List<SpotItem>
+    fun queryTicketItems(tktId:Int):List<SpotItem>
 
     /**
      * 获取项目关联的票价
@@ -61,17 +67,17 @@ interface SpotItemSvc {
     /**
      * 新增票价赠送项目
      */
-    fun addTicketItem(tktId:Int, tktPriceId:Int, itemId:Int, nums:Int):Boolean
+    fun addTicketItem(tktId:Int,itemId:Int, nums:Int):Boolean
 
     /**
      * 删除票价赠送项目
      */
-    fun removeTicketItem(tktPriceId: Int,itemId:Int):Boolean
+    fun removeTicketItem(tktId: Int,itemId:Int):Boolean
 
     /**
      * 删除票价所有项目
      */
-    fun removeAllTicketItems(tktPriceId: Int):Boolean
+    fun removeAllTicketItems(tktId: Int):Boolean
 
     /**
      * 添加订单赠送的项目

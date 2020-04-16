@@ -19,7 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.primitives.Doubles
 import com.google.common.primitives.Ints
 import java.lang.Exception
+import java.util.*
 import javax.servlet.http.HttpServletRequest
+import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("/ota/v1/manage/ticket")
@@ -156,7 +158,10 @@ class ManageTicketController : BaseController() {
         @RequestParam("icon_url", required = false) iconUrl: String?,
         @RequestParam("tags", required = false) tags: String?,
         @RequestParam("rel_tkt_ids", required = false) relTktIds: String?,
-        @RequestParam("state", required = false) state: Int?
+        @RequestParam("state", required = false) state: Int?,
+        @RequestParam("item_ids", required = false) itemIds: String?,
+        @RequestParam("open_start_ts", required = false) openStartTs: Int?,
+        @RequestParam("open_end_ts", required = false) openEndTs: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         if (Strings.isNullOrEmpty(scenicSids)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
@@ -192,6 +197,13 @@ class ManageTicketController : BaseController() {
         tkt.title = title
         tkt.state = TicketStates.prase(state)
 
+        if(openStartTs != null && openStartTs > 0) {
+            tkt.openStartTime = Date(openStartTs * 1000L)
+        }
+        if(openEndTs != null && openEndTs > 0) {
+            tkt.openEndTime = Date(openEndTs * 1000L)
+        }
+
         var relIds: List<Int> = ArrayList()
         var sids: List<Int> = ArrayList()
 
@@ -207,9 +219,21 @@ class ManageTicketController : BaseController() {
 
         val ok = ticketSvc.createTicket(tkt, sids, addTags, relIds)
         if (ok) {
+            addTktItems(tkt,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "创建成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "创建失败")
+    }
+
+    fun addTktItems(tkt:Ticket,itemIds: String?) {
+        val iIds = itemIds?.split(",")
+        if(iIds == null || iIds.isEmpty()) {
+            return
+        }
+        for(itemId in iIds) {
+            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
+            spotItemSvc.addTicketItem(tkt.id,item.id,item.personalNums)
+        }
     }
 
     @PutMapping("{id}")
@@ -228,7 +252,10 @@ class ManageTicketController : BaseController() {
         @RequestParam("icon_url", required = false) iconUrl: String?,
         @RequestParam("tags", required = false) tags: String?,
         @RequestParam("rel_tkt_ids", required = false) relTktIds: String?,
-        @RequestParam("state", required = false) state: Int?
+        @RequestParam("state", required = false) state: Int?,
+        @RequestParam("item_ids", required = false) itemIds: String?,
+        @RequestParam("open_start_ts", required = false) openStartTs: Int?,
+        @RequestParam("open_end_ts", required = false) openEndTs: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         val tkt = ticketDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
         if (Strings.isNullOrEmpty(scenicSids)) {
@@ -264,6 +291,17 @@ class ManageTicketController : BaseController() {
         tkt.iconUrl = iconUrl
         tkt.title = title
         tkt.state = TicketStates.prase(state)
+        if(openStartTs != null && openStartTs > 0) {
+            tkt.openStartTime = Date(openStartTs * 1000L)
+        } else {
+            tkt.openStartTime = null
+        }
+        if(openEndTs != null && openEndTs > 0) {
+            tkt.openEndTime = Date(openEndTs * 1000L)
+        } else {
+            tkt.openEndTime = null
+        }
+
         var relIds: List<Int> = ArrayList()
         var sids: List<Int> = ArrayList()
 
@@ -278,9 +316,22 @@ class ManageTicketController : BaseController() {
         }
         val ok = ticketSvc.updateTicket(tkt, sids, addTags, relIds)
         if (ok) {
+            updateTktItems(tkt,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
+    }
+
+    fun updateTktItems(tkt:Ticket,itemIds: String?) {
+        spotItemSvc.removeAllTicketItems(tkt.id)
+        val iIds = itemIds?.split(",")
+        if(iIds == null || iIds.isEmpty()) {
+            return
+        }
+        for(itemId in iIds) {
+            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
+            spotItemSvc.addTicketItem(tkt.id,item.id,item.personalNums)
+        }
     }
 
     @GetMapping("price/{id}")
@@ -317,7 +368,6 @@ class ManageTicketController : BaseController() {
         @RequestParam("buy_limit", required = false) buyLimit: Int?,
         @RequestParam("buy_time", required = false) buyTime: Int?,
         @RequestParam("b2b_plu", required = false) b2bPLU: String?,
-        @RequestParam("item_ids", required = false) itemIds: String?,
         req: HttpServletRequest
     ): com.cj.ticketsys.controller.dto.Result {
         if (tid == null || tid <= 0) {
@@ -407,21 +457,9 @@ class ManageTicketController : BaseController() {
         }
         val ok = ticketSvc.createPrice(tp, useDate)
         if (ok) {
-            addTktPriceItems(tp,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "添加成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "添加失败")
-    }
-
-    fun addTktPriceItems(tp:TicketPrice,itemIds: String?) {
-        val iIds = itemIds?.split(",")
-        if(iIds == null || iIds.isEmpty()) {
-            return
-        }
-        for(itemId in iIds) {
-            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
-            spotItemSvc.addTicketItem(tp.tid,tp.id,item.id,item.personalNums)
-        }
     }
 
     fun checkCustomPricesProperty(txt: String): Boolean {
@@ -485,8 +523,7 @@ class ManageTicketController : BaseController() {
         @RequestParam("idcard_prices", required = false) idCardPrices: String?,
         @RequestParam("buy_limit", required = false) buyLimit: Int?,
         @RequestParam("buy_time", required = false) buyTime: Int?,
-        @RequestParam("b2b_plu", required = false) b2bPLU: String?,
-        @RequestParam("item_ids", required = false) itemIds: String?
+        @RequestParam("b2b_plu", required = false) b2bPLU: String?
     ): com.cj.ticketsys.controller.dto.Result {
         if (id == null || id <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:id")
@@ -576,21 +613,8 @@ class ManageTicketController : BaseController() {
         }
         val ok = ticketSvc.updatePrice(tp, useDate)
         if (ok) {
-            updateTktPriceItems(tp,itemIds)
             return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "更新成功")
         }
         return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "更新失败")
-    }
-
-    fun updateTktPriceItems(tp:TicketPrice,itemIds: String?) {
-        spotItemSvc.removeAllTicketItems(tp.id)
-        val iIds = itemIds?.split(",")
-        if(iIds == null || iIds.isEmpty()) {
-            return
-        }
-        for(itemId in iIds) {
-            val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
-            spotItemSvc.addTicketItem(tp.tid,tp.id,item.id,item.personalNums)
-        }
     }
 }

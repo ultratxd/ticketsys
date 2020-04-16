@@ -52,19 +52,19 @@ class OrderSvcImpl : OrderSvc {
         /**
          * 添加赠送项目
          */
-        val orderItems = ArrayList<TicketOrderItem>()
-        for(sub in subOrder) {
-            val items = spotItemSvc.queryTicketItems(sub.ticketPid)
-            for(item in items) {
-                val oItem = TicketOrderItem()
-                oItem.itemId = item.id
-                oItem.nums = item.personalNums * sub.nums
-                oItem.orderId = order.orderId
-                oItem.orderSubId = sub.id
-                orderItems.add(oItem)
-            }
-        }
-        spotItemSvc.addOrderItems(orderItems)
+//        val orderItems = ArrayList<TicketOrderItem>()
+//        for(sub in subOrder) {
+//            val items = spotItemSvc.queryTicketItems(sub.ticketId)
+//            for(item in items) {
+//                val oItem = TicketOrderItem()
+//                oItem.itemId = item.id
+//                oItem.nums = item.personalNums * sub.nums
+//                oItem.orderId = order.orderId
+//                oItem.orderSubId = sub.id
+//                orderItems.add(oItem)
+//            }
+//        }
+//        spotItemSvc.addOrderItems(orderItems)
 
         return true
     }
