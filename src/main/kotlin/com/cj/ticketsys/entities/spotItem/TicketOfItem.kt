@@ -5,6 +5,6 @@ import com.cj.ticketsys.entities.PropertyEntity
 class TicketOfItem :PropertyEntity() {
     var ticketId:Int = 0
     var itemId:Int = 0
-    var itemPriceId:Int = 0
     var nums:Int = 0
+    var perNums:Int = 0
 }

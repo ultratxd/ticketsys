@@ -30,7 +30,6 @@ class MSpotItemOfTicketTransformer : DocTransformer<TicketOfItem, TicketOfItemDt
     override fun transform(data: TicketOfItem): TicketOfItemDto? {
         val dto = TicketOfItemDto()
         dto.itemId = data.itemId
-        dto.itemPriceId = data.itemPriceId
         dto.nums= data.nums
         dto.ticketId = data.ticketId
 

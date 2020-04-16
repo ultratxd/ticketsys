@@ -97,11 +97,12 @@ class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
         return spotItemDao.getItemOfTickets(itemPriceId)
     }
 
-    override fun addTicketItem(tktId: Int, itemId: Int, nums: Int): Boolean {
+    override fun addTicketItem(tktId: Int, itemId: Int, nums: Int, perNums:Int): Boolean {
         val tktOfItem = TicketOfItem()
         tktOfItem.ticketId = tktId
         tktOfItem.itemId = itemId
         tktOfItem.nums = nums
+        tktOfItem.perNums = perNums
         return spotItemDao.insertTicketItem(tktOfItem) > 0
     }
 

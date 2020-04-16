@@ -232,7 +232,7 @@ class ManageTicketController : BaseController() {
         }
         for(itemId in iIds) {
             val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
-            spotItemSvc.addTicketItem(tkt.id,item.id,item.personalNums)
+            spotItemSvc.addTicketItem(tkt.id,item.id,1,item.personalNums)
         }
     }
 
@@ -330,7 +330,7 @@ class ManageTicketController : BaseController() {
         }
         for(itemId in iIds) {
             val item = spotItemSvc.getSpotItem(itemId.toInt()) ?: continue
-            spotItemSvc.addTicketItem(tkt.id,item.id,item.personalNums)
+            spotItemSvc.addTicketItem(tkt.id,item.id,1 ,item.personalNums)
         }
     }
 

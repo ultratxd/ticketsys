@@ -225,7 +225,6 @@ interface SpotItemDao {
     @Select("select * from ticket_spot_items where tkt_id=#{tktId}")
     @Results(
         Result(column = "tkt_id", property = "ticketId"),
-        Result(column = "tkt_pid", property = "ticketPriceId"),
         Result(column = "item_id", property = "itemId"),
         Result(column = "item_pid", property = "itemPriceId")
     )
@@ -234,13 +233,12 @@ interface SpotItemDao {
     @Select("select * from ticket_spot_items where item_pid=#{itemPriceId}")
     @Results(
         Result(column = "tkt_id", property = "ticketId"),
-        Result(column = "tkt_pid", property = "ticketPriceId"),
         Result(column = "item_id", property = "itemId"),
         Result(column = "item_pid", property = "itemPriceId")
     )
     fun getItemOfTickets(itemPriceId:Int):List<TicketOfItem>
 
-    @Insert("insert into ticket_spot_items(tkt_id,item_pid,item_id,nums,properties) values(#{ticketId},#{itemPriceId},#{itemId},#{nums},#{properties})")
+    @Insert("insert into ticket_spot_items(tkt_id,item_id,nums,per_nums,properties) values(#{ticketId},#{itemId},#{nums},#{perNums},#{properties})")
     fun insertTicketItem(ticketItem:TicketOfItem):Long
 
     @Update("update ticket_spot_items set nums=nums+#{nums} where tkt_id=#{tktId} and itemId=#{itemId}")

@@ -67,7 +67,7 @@ interface SpotItemSvc {
     /**
      * 新增票价赠送项目
      */
-    fun addTicketItem(tktId:Int,itemId:Int, nums:Int):Boolean
+    fun addTicketItem(tktId:Int,itemId:Int, nums:Int, perNums:Int):Boolean
 
     /**
      * 删除票价赠送项目

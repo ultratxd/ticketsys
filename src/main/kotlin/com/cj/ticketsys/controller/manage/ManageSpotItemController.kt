@@ -56,24 +56,20 @@ class ManageSpotItemController :BaseController() {
         return  ResultT(RESULT_SUCCESS,"ok",dtos)
     }
 
-    @GetMapping("/item/items/channel")
-    fun getItemsByChannel(
-        @RequestParam("scenic_sid", required = false) scenicSid: Int?,
-        @RequestParam("channel_type", required = false) channelType: Int?
-    ): ResultT<List<MSpotItemDto>> {
-        if(scenicSid == null || scenicSid <= 0) {
-            return ResultT(RESULT_FAIL,"参数错误")
-        }
-        if(channelType == null || channelType <= 0) {
-            return ResultT(RESULT_FAIL,"参数错误")
-        }
-        val items = spotItemSvc.querySpotItemsByChannel(scenicSid,ChannelTypes.prase(channelType))
-        val dtos = ArrayList<MSpotItemDto>()
-        for(item in items) {
-            dtos.add(MSpotItemTransformer.transform(item)!!)
-        }
-        return  ResultT(RESULT_SUCCESS,"ok",dtos)
-    }
+//    @GetMapping("/item/items/channel")
+//    fun getItemsByChannel(
+//        @RequestParam("scenic_sid", required = false) scenicSid: Int?
+//    ): ResultT<List<MSpotItemDto>> {
+//        if(scenicSid == null || scenicSid <= 0) {
+//            return ResultT(RESULT_FAIL,"参数错误")
+//        }
+//        val items = spotItemSvc.querySpotItems(scenicSid)
+//        val dtos = ArrayList<MSpotItemDto>()
+//        for(item in items) {
+//            dtos.add(MSpotItemTransformer.transform(item)!!)
+//        }
+//        return  ResultT(RESULT_SUCCESS,"ok",dtos)
+//    }
 
     @GetMapping("/item/{id}")
     fun getItem(

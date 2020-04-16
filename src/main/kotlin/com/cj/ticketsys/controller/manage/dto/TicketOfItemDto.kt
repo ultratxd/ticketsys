@@ -10,8 +10,6 @@ class TicketOfItemDto : Serializable {
     var ticket: MTicketDto? = null
     @JsonProperty("item_id")
     var itemId:Int = 0
-    @JsonProperty("item_pid")
-    var itemPriceId:Int = 0
     @JsonProperty("nums")
     var nums:Int = 0
 }
