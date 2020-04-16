@@ -1,6 +1,7 @@
 package com.cj.ticketsys.controller.manage.transformer
 
 import com.cj.ticketsys.controller.manage.dto.MScenicSpotDto
+import com.cj.ticketsys.controller.manage.dto.MSpotItemDto
 import com.cj.ticketsys.controller.manage.dto.MTicketDto
 import com.cj.ticketsys.controller.manage.dto.MTicketPriceDto
 import com.cj.ticketsys.dao.ScenicSpotDao
@@ -8,7 +9,9 @@ import com.cj.ticketsys.dao.TicketDao
 import com.cj.ticketsys.entities.ScenicSpot
 import com.cj.ticketsys.entities.Ticket
 import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.entities.spotItem.SpotItem
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.SpotItemSvc
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -26,6 +29,12 @@ class MTicketTransformer  : DocTransformer<Ticket, MTicketDto> {
 
     @Autowired
     private lateinit var mTicketTransformer: DocTransformer<TicketPrice, MTicketPriceDto>
+
+    @Autowired
+    private lateinit var spotItemSvc: SpotItemSvc
+
+    @Autowired
+    private lateinit var MSpotItemTransformer: DocTransformer<SpotItem, MSpotItemDto>
 
     override fun transform(data: Ticket): MTicketDto? {
         val dto = MTicketDto(data.id)
@@ -69,6 +78,16 @@ class MTicketTransformer  : DocTransformer<Ticket, MTicketDto> {
                 }
             }
         }
+
+        /**
+         * 赠送小项目
+         */
+        val items = spotItemSvc.queryTicketItems(data.id)
+        val itemDtos = ArrayList<MSpotItemDto>()
+        for(item in items) {
+            itemDtos.add(MSpotItemTransformer.transform(item)!!)
+        }
+        dto.itemMS = itemDtos
 
         return dto
     }

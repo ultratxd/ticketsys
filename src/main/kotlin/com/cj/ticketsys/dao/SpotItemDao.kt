@@ -225,16 +225,14 @@ interface SpotItemDao {
     @Select("select * from ticket_spot_items where tkt_id=#{tktId}")
     @Results(
         Result(column = "tkt_id", property = "ticketId"),
-        Result(column = "item_id", property = "itemId"),
-        Result(column = "item_pid", property = "itemPriceId")
+        Result(column = "item_id", property = "itemId")
     )
     fun getTicketItems(tktId:Int):List<TicketOfItem>
 
     @Select("select * from ticket_spot_items where item_pid=#{itemPriceId}")
     @Results(
         Result(column = "tkt_id", property = "ticketId"),
-        Result(column = "item_id", property = "itemId"),
-        Result(column = "item_pid", property = "itemPriceId")
+        Result(column = "item_id", property = "itemId")
     )
     fun getItemOfTickets(itemPriceId:Int):List<TicketOfItem>
 

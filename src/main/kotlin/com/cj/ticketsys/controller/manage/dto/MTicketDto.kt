@@ -47,4 +47,7 @@ class MTicketDto(val id: Int) {
 
     @JsonProperty("open_end_ts")
     var openEndTs:Long? = null
+
+    @JsonProperty("items")
+    var itemMS:List<MSpotItemDto> = ArrayList()
 }

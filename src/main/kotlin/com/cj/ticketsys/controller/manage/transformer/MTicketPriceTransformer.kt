@@ -21,12 +21,6 @@ class MTicketPriceTransformer  : DocTransformer<TicketPrice, MTicketPriceDto> {
     @Autowired
     private lateinit var useDateDao: TicketUseDateDao
 
-    @Autowired
-    private lateinit var spotItemSvc: SpotItemSvc
-
-    @Autowired
-    private lateinit var MSpotItemTransformer: DocTransformer<SpotItem, MSpotItemDto>
-
     override fun transform(data: TicketPrice): MTicketPriceDto? {
         val dto = MTicketPriceDto(data.id)
         dto.tid = data.tid
@@ -57,16 +51,6 @@ class MTicketPriceTransformer  : DocTransformer<TicketPrice, MTicketPriceDto> {
         if (useDate != null) {
             dto.useDate = useDateTransformer.transform(useDate)!!
         }
-
-        /**
-         * 赠送小项目
-         */
-//        val items = spotItemSvc.queryTicketItems(data.id)
-//        val itemDtos = ArrayList<MSpotItemDto>()
-//        for(item in items) {
-//            itemDtos.add(MSpotItemTransformer.transform(item)!!)
-//        }
-//        dto.itemMS = itemDtos
 
         return dto
     }
