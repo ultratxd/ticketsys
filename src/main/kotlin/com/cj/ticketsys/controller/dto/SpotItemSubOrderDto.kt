@@ -24,6 +24,15 @@ class SpotItemSubOrderDto: Serializable {
     @JsonProperty("used")
     var used:Int? = null
 
+    @JsonProperty("scenic_id")
+    var scenicId:Int = 0
+    @JsonProperty("scenic_name")
+    var scenicName:String = ""
+    @JsonProperty("scenic_sid")
+    var scenicSpotId:Int = 0
+    @JsonProperty("scenic_spot_name")
+    var scenicSpotName:String = ""
+
     @JsonProperty("item")
     var itemM:SpotItemDto? = null
 }

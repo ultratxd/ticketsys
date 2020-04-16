@@ -24,14 +24,6 @@ class SpotItemOrderDto : Serializable {
     var refundTime: Date? = null
     @JsonProperty("refund_no")
     var refundNo:String? = null
-    @JsonProperty("scenic_id")
-    var scenicId:Int = 0
-    @JsonProperty("scenic_name")
-    var scenicName:String = ""
-    @JsonProperty("scenic_sid")
-    var scenicSpotId:Int = 0
-    @JsonProperty("scenic_spot_name")
-    var scenicSpotName:String = ""
     @JsonProperty("state")
     var state: OrderStates = OrderStates.Init
     @JsonProperty("price_discount_type")

@@ -12,12 +12,6 @@ import org.springframework.stereotype.Component
 @Component
 class SpotItemOrderTransformer : DocTransformer<SpotItemOrder, SpotItemOrderDto> {
 
-    @Autowired
-    private lateinit var scenicSpotDao: ScenicSpotDao
-
-    @Autowired
-    private lateinit var scenicDao: ScenicDao
-
     override fun transform(data: SpotItemOrder): SpotItemOrderDto? {
         val dto = SpotItemOrderDto()
         dto.orderId = data.orderId
@@ -28,19 +22,9 @@ class SpotItemOrderTransformer : DocTransformer<SpotItemOrder, SpotItemOrderDto>
         dto.payNo = data.payNo
         dto.refundNo = data.refundNo
         dto.refundTime = data.refundTime
-        dto.scenicId = data.scenicId
-        dto.scenicSpotId = data.scenicSpotId
+
         dto.state = data.state
         dto.priceDiscountTypes = data.priceDiscountTypes
-
-        val scenic = scenicDao.get(data.scenicId)
-        val scenicSpot = scenicSpotDao.get(data.scenicSpotId)
-        if(scenic != null) {
-            dto.scenicName =  scenic.name
-        }
-        if(scenicSpot != null) {
-            dto.scenicSpotName = scenicSpot.name
-        }
 
         return dto
     }
