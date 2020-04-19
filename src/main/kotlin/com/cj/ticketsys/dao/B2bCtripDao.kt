@@ -1,9 +1,9 @@
 package com.cj.ticketsys.dao
 
-import com.cj.ticketsys.entities.b2b.B2bCtripAdjunction
-import com.cj.ticketsys.entities.b2b.B2bCtripItem
-import com.cj.ticketsys.entities.b2b.B2bCtripPassenger
-import com.cj.ticketsys.entities.b2b.B2bCtripExpresses
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripAdjunction
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripItem
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripPassenger
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripExpresses
 import org.apache.ibatis.annotations.*
 import java.util.*
 
@@ -17,7 +17,7 @@ interface B2bCtripDao {
 
     @Insert("insert into b2b_ctrip_adjunctions(ota_id,item_id,name,name_code,content,content_code) values(#{otaId},#{itemId},#{name},#{nameCode},#{content},#{contentCode})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    fun saveAdjunction(adjunction:B2bCtripAdjunction): Long
+    fun saveAdjunction(adjunction: B2bCtripAdjunction): Long
 
     @Insert("insert into b2b_ctrip_passengers(ota_id,item_id,name,first_name,last_name,mobile,inil_code,card_type,card_no,birth_date,age_type,gender,nationality_code,nationality_name,card_issue_place," +
             "card_issue_date,card_valid_date,card_issue_country,birth_place,height,weight,myopia_degree_left,myopia_degree_right,shoe_size)" +
@@ -31,7 +31,7 @@ interface B2bCtripDao {
             " values(#{orderId},#{ticketPriceId},#{otaId},#{itemId},#{openId},#{PLU},#{distributionChannel},#{useStartDate},#{useEndDate},#{lastConfirmTime},#{remark},#{price},#{priceCurrency},#{cost},#{costCurrency},#{suggestedPrice}," +
             "#{suggestedPriceCurrency},#{quantity},#{depositType},#{depositAmount},#{depositAmountCurrency})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    fun saveItem(item:B2bCtripItem): Long
+    fun saveItem(item: B2bCtripItem): Long
 
     @Select("select * from b2b_ctrip_items where ota_id=#{otaId} and item_id=#{itemId}")
     @Results(

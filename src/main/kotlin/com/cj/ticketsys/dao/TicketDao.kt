@@ -114,8 +114,8 @@ interface TicketDao {
     fun searchForAdmin(query: TicketQuery): List<Ticket>
 
     @Insert(
-        "insert into ticket(cloud_id,`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties) " +
-                "values(#{cloudId},#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties})"
+        "insert into ticket(cloud_id,`name`,pernums,create_time,enter_remark,buy_remark,stocks,state,front_view,cid,properties,display_order) " +
+                "values(#{cloudId},#{name},#{perNums},#{createTime},#{enterRemark},#{buyRemark},#{stocks},#{state},#{frontView},#{cid},#{properties},#{displayOrder})"
     )
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     fun insert(ticket: Ticket): Long
@@ -136,7 +136,7 @@ interface TicketDao {
     fun getTktRelatedSpotIds(tktId: Int): List<Int>
 
     @Update(
-        "update ticket set pernums=#{perNums},`name`=#{name},enter_remark=#{enterRemark},buy_remark=#{buyRemark},stocks=#{stocks},state=#{state},front_view=#{frontView},cid=#{cid},properties=#{properties} " +
+        "update ticket set pernums=#{perNums},`name`=#{name},enter_remark=#{enterRemark},buy_remark=#{buyRemark},stocks=#{stocks},state=#{state},front_view=#{frontView},cid=#{cid},properties=#{properties},display_order=#{displayOrder} " +
                 "where id=#{id}"
     )
     fun update(ticket: Ticket): Long

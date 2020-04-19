@@ -1,4 +1,4 @@
-package com.cj.ticketsys.controller.b2b
+package com.cj.ticketsys.controller.b2b.ctrip
 
 data class CtripRefundOrderBody(
     var items: List<CtripRefundOrderBodyItem?>? = listOf(),

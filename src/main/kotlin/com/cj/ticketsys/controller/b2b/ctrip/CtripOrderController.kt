@@ -1,11 +1,11 @@
-package com.cj.ticketsys.controller.b2b
+package com.cj.ticketsys.controller.b2b.ctrip
 
 import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.cfg.SpringAppContext
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.dao.*
 import com.cj.ticketsys.entities.*
-import com.cj.ticketsys.entities.b2b.B2bOtaCategory
+import com.cj.ticketsys.entities.b2b.ctrip.B2bOtaCategory
 import com.cj.ticketsys.svc.*
 import com.cj.ticketsys.svc.b2b.B2BCtripSvc
 import com.cj.ticketsys.svc.b2b.CtripRequest
@@ -34,7 +34,6 @@ class CtripOrderController {
     @Autowired
     private lateinit var subOrderDao: SubOrderDao
 
-    @Autowired
     private lateinit var partnerDao: PartnerDao
 
     @Autowired
@@ -232,7 +231,8 @@ class CtripOrderController {
             resp.header!!.resultMessage = "报文解析失败"
             return resp
         }
-        val order = b2bDao.getOrderByOtaId(data.otaOrderId,B2bOtaCategory.Ctrip.code())
+        val order = b2bDao.getOrderByOtaId(data.otaOrderId,
+            B2bOtaCategory.Ctrip.code())
         if(order != null) {
             resp.header!!.resultCode = "0000"
             resp.header!!.resultMessage = "订单已存在"
@@ -400,7 +400,8 @@ class CtripOrderController {
     ): CtripResponseMessage<CtripCancelOrderResponseBody> {
         val resp = CtripResponseMessage<CtripCancelOrderResponseBody>()
         resp.header = CtripResponseHeader()
-        val b2bOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,B2bOtaCategory.Ctrip.code())
+        val b2bOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,
+            B2bOtaCategory.Ctrip.code())
         if(b2bOrder == null) {
             resp.header!!.resultCode = "2001"
             resp.header!!.resultMessage = "该订单号不存在"
@@ -586,7 +587,8 @@ class CtripOrderController {
             resp.header!!.resultMessage = "该订单号不存在"
             return resp
         }
-        val cOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,B2bOtaCategory.Ctrip.code())
+        val cOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,
+            B2bOtaCategory.Ctrip.code())
         if(cOrder == null) {
             resp.header!!.resultCode = "4001"
             resp.header!!.resultMessage = "该订单号不存在"

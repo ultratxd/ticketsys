@@ -1,4 +1,4 @@
-package com.cj.ticketsys.entities.b2b
+package com.cj.ticketsys.entities.b2b.ctrip
 
 class B2bCtripExpresses : IB2bOta {
     var id:Int = 0

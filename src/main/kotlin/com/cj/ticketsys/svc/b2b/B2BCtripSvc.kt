@@ -2,21 +2,18 @@ package com.cj.ticketsys.svc.b2b
 
 import com.alibaba.druid.util.Utils.md5
 import com.alibaba.fastjson.JSON
-import com.cj.ticketsys.controller.b2b.CtripCreateOrderBody
-import com.cj.ticketsys.controller.b2b.Encrypt
+import com.cj.ticketsys.controller.b2b.ctrip.CtripCreateOrderBody
+import com.cj.ticketsys.controller.b2b.ctrip.Encrypt
 import com.cj.ticketsys.dao.B2bCtripDao
 import com.cj.ticketsys.dao.B2bDao
 import com.cj.ticketsys.dao.OrderTicketCodeDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.ChannelTypes
-import com.cj.ticketsys.entities.Order
 import com.cj.ticketsys.entities.TicketPrice
-import com.cj.ticketsys.entities.b2b.*
-import com.cj.ticketsys.svc.IdBuilder
+import com.cj.ticketsys.entities.b2b.ctrip.*
 import com.cj.ticketsys.svc.PriceBinder
 import com.cj.ticketsys.svc.Utils
 import com.google.common.base.Strings
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -27,11 +24,9 @@ import java.util.Calendar
 import kotlin.collections.ArrayList
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.interceptor.TransactionAspectSupport
-import kotlin.contracts.contract
 
 
 @Service
@@ -194,7 +189,7 @@ class B2BCtripSvc {
      */
     fun consumedNotice(orderId:String):Boolean {
         val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
-        val order = b2bDao.getOrder(orderId,B2bOtaCategory.Ctrip.code()) ?: return false
+        val order = b2bDao.getOrder(orderId, B2bOtaCategory.Ctrip.code()) ?: return false
 
         val ctripBody = CtripConsumedNoticeBody()
         val dateFmt = SimpleDateFormat("yyyy-MM-dd")
@@ -250,7 +245,7 @@ class B2BCtripSvc {
      */
     fun travelNotice(orderId:String):Boolean {
         val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
-        val order = b2bDao.getOrder(orderId,B2bOtaCategory.Ctrip.code()) ?: return false
+        val order = b2bDao.getOrder(orderId, B2bOtaCategory.Ctrip.code()) ?: return false
         val ctripBody = CtripTravelNoticeBody()
 
         val tCode = orderTicketCodeDao.get(orderId) ?: return false

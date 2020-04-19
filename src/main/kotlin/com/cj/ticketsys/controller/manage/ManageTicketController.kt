@@ -161,7 +161,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("state", required = false) state: Int?,
         @RequestParam("item_ids", required = false) itemIds: String?,
         @RequestParam("open_start_ts", required = false) openStartTs: Int?,
-        @RequestParam("open_end_ts", required = false) openEndTs: Int?
+        @RequestParam("open_end_ts", required = false) openEndTs: Int?,
+        @RequestParam("display_order", required = false) displayOrder: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         if (Strings.isNullOrEmpty(scenicSids)) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:scenic_sids")
@@ -196,6 +197,7 @@ class ManageTicketController : BaseController() {
         tkt.iconUrl = iconUrl ?: ""
         tkt.title = title
         tkt.state = TicketStates.prase(state)
+        tkt.displayOrder = displayOrder ?: 0
 
         if(openStartTs != null && openStartTs > 0) {
             tkt.openStartTime = Date(openStartTs * 1000L)
@@ -255,7 +257,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("state", required = false) state: Int?,
         @RequestParam("item_ids", required = false) itemIds: String?,
         @RequestParam("open_start_ts", required = false) openStartTs: Int?,
-        @RequestParam("open_end_ts", required = false) openEndTs: Int?
+        @RequestParam("open_end_ts", required = false) openEndTs: Int?,
+        @RequestParam("display_order", required = false) displayOrder: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         val tkt = ticketDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
         if (Strings.isNullOrEmpty(scenicSids)) {
@@ -291,6 +294,7 @@ class ManageTicketController : BaseController() {
         tkt.iconUrl = iconUrl
         tkt.title = title
         tkt.state = TicketStates.prase(state)
+        tkt.displayOrder = displayOrder ?: 0
         if(openStartTs != null && openStartTs > 0) {
             tkt.openStartTime = Date(openStartTs * 1000L)
         } else {
