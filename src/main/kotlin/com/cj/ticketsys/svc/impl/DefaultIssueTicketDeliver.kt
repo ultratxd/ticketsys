@@ -89,6 +89,6 @@ class DefaultIssueTicketDeliver : IssueTicketDeliver {
         val ydm = Utils.dateZoneFormat(date, "MMdd")//datefmt.format(date)
         val tag = String.format("%02d", channelType?.value ?: 99)
         val rnd = String.format("%05d",Random().nextInt(100000))
-        return "$tag$cid$ydm$rnd"
+        return "A$tag$cid$ydm$rnd"
     }
 }

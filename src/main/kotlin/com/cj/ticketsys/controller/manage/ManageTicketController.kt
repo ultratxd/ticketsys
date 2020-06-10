@@ -12,14 +12,14 @@ import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.DocTransformer
 import com.cj.ticketsys.svc.SpotItemSvc
 import com.cj.ticketsys.svc.TicketSvc
-import com.google.common.base.Strings
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.base.Strings
 import com.google.common.primitives.Doubles
 import com.google.common.primitives.Ints
-import java.lang.Exception
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.*
 import java.util.*
+import java.util.regex.Pattern
 import javax.servlet.http.HttpServletRequest
 import kotlin.collections.ArrayList
 
@@ -162,6 +162,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("item_ids", required = false) itemIds: String?,
         @RequestParam("open_start_ts", required = false) openStartTs: Int?,
         @RequestParam("open_end_ts", required = false) openEndTs: Int?,
+        @RequestParam("buy_start_date", required = false) buyStartDate: String?,
+        @RequestParam("buy_end_date", required = false) buyEndDate: String?,
         @RequestParam("display_order", required = false) displayOrder: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         if (Strings.isNullOrEmpty(scenicSids)) {
@@ -185,6 +187,9 @@ class ManageTicketController : BaseController() {
         if (state == null || state <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
+        if(buyStartDate == null || buyEndDate == null) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购开始和结束日期必须填写")
+        }
         val tkt = Ticket()
         tkt.cloudId = cloudId ?: ""
         tkt.name = name!!
@@ -201,9 +206,24 @@ class ManageTicketController : BaseController() {
 
         if(openStartTs != null && openStartTs > 0) {
             tkt.openStartTime = Date(openStartTs * 1000L)
+        }else {
+            tkt.openStartTime = null
         }
         if(openEndTs != null && openEndTs > 0) {
             tkt.openEndTime = Date(openEndTs * 1000L)
+        }else {
+            tkt.openEndTime = null
+        }
+        val pattern = Pattern.compile("^\\d{4}(\\-)\\d{1,2}\\1\\d{1,2}\$")
+        if(!pattern.matcher(buyStartDate).matches()) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购开始日期格式错误")
+        }else {
+            tkt.buyStartDate = buyStartDate
+        }
+        if(!pattern.matcher(buyEndDate).matches()) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购结束日期格式错误")
+        }else {
+            tkt.buyEndDate = buyEndDate
         }
 
         var relIds: List<Int> = ArrayList()
@@ -228,8 +248,11 @@ class ManageTicketController : BaseController() {
     }
 
     fun addTktItems(tkt:Ticket,itemIds: String?) {
-        val iIds = itemIds?.split(",")
-        if(iIds == null || iIds.isEmpty()) {
+        if(Strings.isNullOrEmpty(itemIds)) {
+            return
+        }
+        val iIds = itemIds!!.split(",")
+        if(iIds.isEmpty()) {
             return
         }
         for(itemId in iIds) {
@@ -258,6 +281,8 @@ class ManageTicketController : BaseController() {
         @RequestParam("item_ids", required = false) itemIds: String?,
         @RequestParam("open_start_ts", required = false) openStartTs: Int?,
         @RequestParam("open_end_ts", required = false) openEndTs: Int?,
+        @RequestParam("buy_start_date", required = false) buyStartDate: String?,
+        @RequestParam("buy_end_date", required = false) buyEndDate: String?,
         @RequestParam("display_order", required = false) displayOrder: Int?
     ): com.cj.ticketsys.controller.dto.Result {
         val tkt = ticketDao.get(id) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "票不存在")
@@ -282,6 +307,9 @@ class ManageTicketController : BaseController() {
         if (state == null || state <= 0) {
             return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:state")
         }
+        if(buyStartDate == null || buyEndDate == null) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购开始和结束日期必须填写")
+        }
 
         tkt.cloudId = cloudId ?: ""
         tkt.name = name!!
@@ -304,6 +332,17 @@ class ManageTicketController : BaseController() {
             tkt.openEndTime = Date(openEndTs * 1000L)
         } else {
             tkt.openEndTime = null
+        }
+        val pattern = Pattern.compile("^\\d{4}(\\-)\\d{1,2}\\1\\d{1,2}\$")
+        if(!pattern.matcher(buyStartDate).matches()) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购开始日期格式错误")
+        }else {
+            tkt.buyStartDate = buyStartDate
+        }
+        if(!pattern.matcher(buyEndDate).matches()) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "参数错误:可购结束日期格式错误")
+        }else {
+            tkt.buyEndDate = buyEndDate
         }
 
         var relIds: List<Int> = ArrayList()
@@ -328,8 +367,11 @@ class ManageTicketController : BaseController() {
 
     fun updateTktItems(tkt:Ticket,itemIds: String?) {
         spotItemSvc.removeAllTicketItems(tkt.id)
-        val iIds = itemIds?.split(",")
-        if(iIds == null || iIds.isEmpty()) {
+        if(Strings.isNullOrEmpty(itemIds)) {
+            return
+        }
+        val iIds = itemIds!!.split(",")
+        if(iIds.isEmpty()) {
             return
         }
         for(itemId in iIds) {

@@ -34,7 +34,6 @@ class SpotItemSubOrderTransformer : DocTransformer<SpotItemSubOrder, SpotItemSub
         dto.unitPrice = data.unitPrice
         dto.nums = data.nums
         dto.perNums = data.perNums
-        dto.used = data.used
         dto.scenicId = data.scenicId
         dto.scenicSpotId = data.scenicSpotId
 

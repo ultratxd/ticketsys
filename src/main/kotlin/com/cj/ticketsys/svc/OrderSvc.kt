@@ -13,6 +13,8 @@ interface OrderSvc {
 
     fun cancelOrder(orderNo: String): Boolean
 
+    fun refundOrder(orderNo:String,refundTime:Date,refundNo:String):Boolean
+
     fun completedEnter(orderNo: String, enterCode: String, provider: OrderTicketCodeProviders): Boolean
 
     fun modifyUseDate(subOrderId:Int, newUseDate:Date): Boolean

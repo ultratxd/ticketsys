@@ -29,6 +29,12 @@ open class TicketDto(@JsonProperty("id") val id: Int) {
 
     var extra:MutableMap<String,Any> = TreeMap()
 
+    @JsonProperty("buy_start_date")
+    var buyStartDate:String? = null
+
+    @JsonProperty("buy_end_date")
+    var buyEndDate:String? = null
+
     @JsonProperty("related_tickets")
     var relatedTickets:MutableList<TicketDto>? = null
 }

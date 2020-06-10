@@ -1,5 +1,6 @@
 package com.cj.ticketsys.dao
 
+import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.spotItem.*
 import org.apache.ibatis.annotations.*
 
@@ -30,6 +31,17 @@ interface SpotItemDao {
         Result(column = "create_time", property = "createTime")
     )
     fun querySpotItems(spotId:Int): List<SpotItem>
+
+    @Select("select * from spot_items")
+    @Results(
+        Result(column = "scenic_id", property = "scenicId"),
+        Result(column = "scenic_sid", property = "scenicSpotId"),
+        Result(column = "desc1", property = "desc1"),
+        Result(column = "desc2", property = "desc2"),
+        Result(column = "per_nums", property = "personalNums"),
+        Result(column = "create_time", property = "createTime")
+    )
+    fun queryAllSpotItems(): List<SpotItem>
 
     @Select("select si.* from spot_items si join spot_item_prices sip on si.id=sip.item_id" +
             " where si.scenic_sid=#{spotId} and sip.channel_type=#{channelType}")
@@ -119,13 +131,23 @@ interface SpotItemDao {
     )
     fun updateOrder(order:SpotItemOrder):Long
 
+    @Update(
+        "update spot_item_orders set state=#{state} where order_id=#{orderId}"
+    )
+    fun updateOrderState(orderId:String,state: OrderStates):Long
+
+    @Update(
+        "update spot_item_orders set code=#{code} where order_id=#{orderId}"
+    )
+    fun updateOrderCode(orderId: String,code:String):Long
+
     @Select("<script>select * from spot_item_orders " +
             "<where>" +
-            "<if test=\"state !=null\">and state=#{state}</if>" +
-            "<if test=\"startTime !=null\">and create_time > #{startTime}</if>" +
-            "<if test=\"endTime !=null\">and create_time &lt; #{endTime}</if>" +
-            "<if test=\"channelUid !=null\">and ch_uid = #{channelUid}</if>" +
-            "<if test=\"channelId !=null\">and ch_id = #{channelId}</if>" +
+            "<if test=\"state !=null\"> and state=#{state}</if>" +
+            "<if test=\"startTime !=null\"> and create_time > #{startTime}</if>" +
+            "<if test=\"endTime !=null\"> and create_time &lt; #{endTime}</if>" +
+            "<if test=\"channelUid !=null\"> and ch_uid = #{channelUid}</if>" +
+            "<if test=\"channelId !=null\"> and ch_id = #{channelId}</if>" +
             "</where>" +
             "limit #{offset},#{size}" +
             "</script>")
@@ -139,11 +161,11 @@ interface SpotItemDao {
 
     @Select("<script>select count(0) from spot_item_orders " +
             "<where>" +
-            "<if test=\"state !=null\">and state=#{state}</if>" +
-            "<if test=\"startTime !=null\">and create_time > #{startTime}</if>" +
-            "<if test=\"endTime !=null\">and create_time &lt; #{endTime}</if>" +
-            "<if test=\"channelUid !=null\">and ch_uid = #{channelUid}</if>" +
-            "<if test=\"channelId !=null\">and ch_id = #{channelId}</if>" +
+            "<if test=\"state !=null\"> and state=#{state}</if>" +
+            "<if test=\"startTime !=null\"> and create_time > #{startTime}</if>" +
+            "<if test=\"endTime !=null\"> and create_time &lt; #{endTime}</if>" +
+            "<if test=\"channelUid !=null\"> and ch_uid = #{channelUid}</if>" +
+            "<if test=\"channelId !=null\"> and ch_id = #{channelId}</if>" +
             "</where>" +
             "</script>")
     fun queryOrdersCount(query:SpotItemOrderQuery): Long
@@ -175,14 +197,9 @@ interface SpotItemDao {
     )
     fun getSubOrder(orderId:String):SpotItemSubOrder?
 
-    @Insert("insert into spot_item_suborders(order_id,item_id,item_pid,price,unit_price,use_date,nums,per_nums,create_time,used,scenic_id,scenic_sid,properties) " +
-            "values(#{orderId},#{itemId},#{itemPid},#{price},#{unitPrice},#{useDate},#{nums},#{perNums},#{createTime},#{used},#{scenicId},#{scenicSpotId},#{properties})")
+    @Insert("insert into spot_item_suborders(order_id,item_id,item_pid,price,unit_price,use_date,nums,per_nums,create_time,scenic_id,scenic_sid,properties) " +
+            "values(#{orderId},#{itemId},#{itemPid},#{price},#{unitPrice},#{useDate},#{nums},#{perNums},#{createTime},#{scenicId},#{scenicSpotId},#{properties})")
     fun insertSubOrder(subOrder: SpotItemSubOrder):Long
-
-    @Update(
-        "update spot_item_suborders set used=#{used},properties=#{properties} where id=#{id}"
-    )
-    fun updateSubOrder(subOrder:SpotItemSubOrder):Long
 
     @Select("select * from spot_item_suborders where order_id=#{orderId}")
     @Results(
@@ -194,30 +211,34 @@ interface SpotItemDao {
     /**
      * spotItemVerification
      */
-    @Select("select * from spot_item_verifications where tkt_order_id=#{ticketOrderId}")
+    @Select("select * from spot_item_verifications where client_order_no=#{clientOrderNo} and client_qr_code=#{clientQrCode}")
     @Results(
-        Result(column = "tkt_order_id", property = "ticketOrderId"),
+        Result(column = "client_order_no", property = "clientOrderNo"),
+        Result(column = "client_qr_code", property = "clientQrCode"),
         Result(column = "item_order_id", property = "itemOrderId"),
         Result(column = "scenic_id", property = "scenicSpotId")
     )
-    fun getVerificationByTkt(ticketOrderId:String):SpotItemVerificiation?
+    fun getVerificationByTkt(clientOrderNo:String,clientQrCode:String):SpotItemVerificiation?
 
-    @Select("select * from spot_item_verifications where item_order_id=#{itemOrderId}")
+    @Select("select * from spot_item_verifications where item_order_id=#{itemOrderId} and item_sub_id=#{itemSubId}")
     @Results(
-        Result(column = "tkt_order_id", property = "ticketOrderId"),
+        Result(column = "client_order_no", property = "clientOrderNo"),
+        Result(column = "client_qr_code", property = "clientQrCode"),
         Result(column = "item_order_id", property = "itemOrderId"),
+        Result(column = "item_sub_id", property = "itemSubId"),
         Result(column = "scenic_id", property = "scenicSpotId")
     )
-    fun getVerificationByItem(itemOrderId:String):SpotItemVerificiation
+    fun getVerificationOnItemOrder(itemOrderId:String,itemSubId:Int):SpotItemVerificiation?
 
-    @Insert("insert into spot_item_verifications(tkt_order_id,item_order_id,order_type,create_time,nums,verifier,scenic_sid,properties) " +
-            "values(#{ticketOrderId},#{itemOrderId},#{orderType},#{createTime},#{nums},#{verifier},#{scenicSpotId},#{properties})")
+    @Insert("insert into spot_item_verifications(client_order_no,client_qr_code,item_order_id,item_sub_id,order_type,create_time,nums,verifier,scenic_sid,properties) " +
+            "values(#{clientOrderNo},#{clientQrCode},#{itemOrderId},#{itemSubId},#{orderType},#{createTime},#{nums},#{verifier},#{scenicSpotId},#{properties})")
     fun insertVerification(spotItemVerificiation: SpotItemVerificiation) :Long
 
-//    @Update(
-//        "update spot_item_verifications "
-//    )
-//    fun updateVerification(spotItemVerificiation: SpotItemVerificiation):Long
+    @Update(
+        ""
+    )
+    fun incrVerificationNums(id:Int, nums:Int):Long
+
 
     /**
      * TktSpotItem

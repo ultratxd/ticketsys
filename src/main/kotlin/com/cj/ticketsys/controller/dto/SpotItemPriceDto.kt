@@ -20,7 +20,7 @@ class SpotItemPriceDto : Serializable {
     @JsonProperty("unit")
     var unit:String = ""
     @JsonProperty("channel_type")
-    var channelType: ChannelTypes? = null
+    var channelType: Short? = null
     @JsonProperty("state")
     var state: ItemPriceStates? = null
     @JsonProperty("stocks")

@@ -48,6 +48,12 @@ class MTicketDto(val id: Int) {
     @JsonProperty("open_end_ts")
     var openEndTs:Long? = null
 
+    @JsonProperty("buy_start_date")
+    var buyStartDate:String? = null
+
+    @JsonProperty("buy_end_date")
+    var buyEndDate:String? = null
+
     @JsonProperty("items")
     var itemMS:List<MSpotItemDto> = ArrayList()
 }

@@ -33,5 +33,13 @@ class Ticket : PropertyEntity() {
         get() = this.getProperty("open_end_time") as Date?
         set(value) = this.setProperty("open_end_time", value)
 
+    var buyStartDate: String?
+        get() = this.getProperty("buy_start_date") as String?
+        set(value) = this.setProperty("buy_start_date", value)
+
+    var buyEndDate:String?
+        get() = this.getProperty("buy_end_date") as String?
+        set(value) = this.setProperty("buy_end_date", value)
+
     var prices:MutableList<TicketPrice> = ArrayList()
 }

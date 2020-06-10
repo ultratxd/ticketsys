@@ -8,6 +8,7 @@ import com.cj.ticketsys.controller.manage.dto.MSpotItemPriceDto
 import com.cj.ticketsys.controller.manage.dto.TicketOfItemDto
 import com.cj.ticketsys.dao.ScenicSpotDao
 import com.cj.ticketsys.entities.ChannelTypes
+import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PagedList
 import com.cj.ticketsys.entities.spotItem.*
 import com.cj.ticketsys.svc.DocTransformer
@@ -45,10 +46,12 @@ class ManageSpotItemController :BaseController() {
     fun getItems(
         @RequestParam("scenic_sid", required = false) scenicSid: Int?
     ): ResultT<List<MSpotItemDto>> {
-        if(scenicSid == null || scenicSid <= 0) {
-            return ResultT(RESULT_FAIL,"参数错误")
+        var items:List<SpotItem>
+        if(scenicSid == null) {
+            items = spotItemSvc.queryAllSpotItems()
+        }else {
+            items = spotItemSvc.querySpotItems(scenicSid)
         }
-        val items = spotItemSvc.querySpotItems(scenicSid)
         val dtos = ArrayList<MSpotItemDto>()
         for(item in items) {
             dtos.add(MSpotItemTransformer.transform(item)!!)
@@ -310,6 +313,13 @@ class ManageSpotItemController :BaseController() {
             val pList = PagedList(1,1,1, listOf(orderTransformerM.transform(order)!!))
             return ResultT(RESULT_SUCCESS,"ok",pList)
         }
+        var oState: OrderStates? = null
+        if (state != null) {
+            if (!OrderStates.values().any { s -> s.value == state.toShort() }) {
+                return ResultT(RESULT_FAIL, "state状态不存在")
+            }
+            oState = OrderStates.prase(state.toInt())
+        }
         var p = 1
         var s = 20
         if(page != null && page > 0) {
@@ -319,7 +329,9 @@ class ManageSpotItemController :BaseController() {
             s = size
         }
         val query = SpotItemOrderQuery()
-        query.state = state
+        if(oState != null) {
+            query.state = oState
+        }
         query.startTime = startTime
         val orders = spotItemSvc.queryOrders(query,p,s)
         var pList = PagedList(p,s,orders.total,orders.list.map { a->orderTransformerM.transform(a)!! })

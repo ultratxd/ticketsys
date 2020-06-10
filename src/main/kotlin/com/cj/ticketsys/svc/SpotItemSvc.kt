@@ -2,6 +2,7 @@ package com.cj.ticketsys.svc
 
 import com.cj.ticketsys.dao.OrderQuery
 import com.cj.ticketsys.entities.ChannelTypes
+import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PagedList
 import com.cj.ticketsys.entities.spotItem.*
 
@@ -11,6 +12,11 @@ interface SpotItemSvc {
      * 获取景点项目
      */
     fun querySpotItems(scenicSpotId:Int):List<SpotItem>
+
+    /**
+     * 获取景点项目
+     */
+    fun queryAllSpotItems():List<SpotItem>
 
     /**
      * 有指定渠道的价格的项目
@@ -103,6 +109,16 @@ interface SpotItemSvc {
      * 获取订单
      */
     fun getOrder(orderId:String): SpotItemOrder?
+
+    /**
+     * 设置订单提取码
+     */
+    fun setOrderCode(orderId:String,code:String): Boolean
+
+    /**
+     * 设置订单状态
+     */
+    fun setOrderState(orderId:String,state:OrderStates):Boolean
 
     /**
      * 查询提取码订单

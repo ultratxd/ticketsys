@@ -129,22 +129,6 @@ class OrderController : BaseController() {
         return ResultT(RESULT_SUCCESS, "ok", pList)
     }
 
-    @GetMapping("/my/{uid}/cards")
-    fun getMyCardTicket(
-        @PathVariable("uid", required = true) uid: String,
-        @RequestParam("partner_id", required = false) partnerId: String?
-    ): ResultT<List<CardTicketDto>> {
-        if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
-            return ResultT(RESULT_FAIL, "参数错误")
-        }
-        val cards = cardTicketDao.getsByPartner(partnerId!!, uid)
-        val list = ArrayList<CardTicketDto>()
-        for (card in cards) {
-            list.add(cardTicketTransformer.transform(card)!!)
-        }
-        return ResultT(RESULT_SUCCESS, "ok", list)
-    }
-
     @PutMapping("/cancel/{orderNo}")
     fun cancel(
         @PathVariable("orderNo", required = true) orderNo: String
@@ -218,6 +202,14 @@ class OrderController : BaseController() {
         }
         val tCode = orderTicketCodeDao.getByCode(code!!, OrderTicketCodeProviders.System)
             ?: return ResultT(RESULT_FAIL, "编号不存在")
+        if(tCode.state != TicketCodeStates.Unused) {
+            return when(tCode.state){
+                TicketCodeStates.Expired -> ResultT(RESULT_FAIL, "兑换码已过期")
+                TicketCodeStates.Invalid -> ResultT(RESULT_FAIL, "兑换码失效")
+                TicketCodeStates.Used -> ResultT(RESULT_FAIL, "兑换码已使用")
+                else -> ResultT(RESULT_FAIL, "其他错误")
+            }
+        }
         val order = orderDao.get(tCode.orderId) ?: return ResultT(RESULT_FAIL, "编号对应的订单不存在")
         val dto = orderTransformer.transform(order)!!
         return ResultT(RESULT_SUCCESS, "ok", dto)
@@ -237,5 +229,69 @@ class OrderController : BaseController() {
             return Result(RESULT_SUCCESS, "核销成功")
         }
         return Result(RESULT_FAIL, "核销失败")
+    }
+
+    /**
+     * 年卡
+     */
+    @GetMapping("/my/{uid}/cards")
+    fun getMyCardTicket(
+        @PathVariable("uid", required = true) uid: String,
+        @RequestParam("partner_id", required = false) partnerId: String?
+    ): ResultT<List<CardTicketDto>> {
+        if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val cards = cardTicketDao.getsSelfByPartner(partnerId!!, uid)
+        val outCards = ArrayList<CardTicket>()
+        for(card in cards) {
+            if(card.expireTime != null && card.expireTime!!.before(Date())) {
+                continue
+            }
+            outCards.add(card)
+        }
+        val list = ArrayList<CardTicketDto>()
+        for (card in outCards) {
+            list.add(cardTicketTransformer.transform(card)!!)
+        }
+        return ResultT(RESULT_SUCCESS, "ok", list)
+    }
+
+    @GetMapping("/my/{uid}/expired/cards")
+    fun getMyExpiredCard(
+        @PathVariable("uid", required = true) uid: String,
+        @RequestParam("partner_id", required = false) partnerId: String?
+    ): ResultT<List<CardTicketDto>>{
+        if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val cards = cardTicketDao.getsSelfByPartner(partnerId!!, uid)
+        val outCards = ArrayList<CardTicket>()
+        for(card in cards) {
+            if(card.expireTime != null && card.expireTime!!.before(Date())) {
+                outCards.add(card)
+            }
+        }
+        val list = ArrayList<CardTicketDto>()
+        for (card in outCards) {
+            list.add(cardTicketTransformer.transform(card)!!)
+        }
+        return ResultT(RESULT_SUCCESS, "ok", list)
+    }
+
+    @GetMapping("/my/{uid}/relay/cards")
+    fun getMyRelayCard(
+        @PathVariable("uid", required = true) uid: String,
+        @RequestParam("partner_id", required = false) partnerId: String?
+    ): ResultT<List<CardTicketDto>>{
+        if (Strings.isNullOrEmpty(uid) || Strings.isNullOrEmpty(partnerId)) {
+            return ResultT(RESULT_FAIL, "参数错误")
+        }
+        val cards = cardTicketDao.getsRelayByPartner(partnerId!!, uid)
+        val list = ArrayList<CardTicketDto>()
+        for (card in cards) {
+            list.add(cardTicketTransformer.transform(card)!!)
+        }
+        return ResultT(RESULT_SUCCESS, "ok", list)
     }
 }

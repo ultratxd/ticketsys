@@ -5,12 +5,11 @@ import com.cj.ticketsys.cfg.SpringAppContext
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.dao.*
 import com.cj.ticketsys.entities.*
-import com.cj.ticketsys.entities.b2b.ctrip.B2bOtaCategory
 import com.cj.ticketsys.svc.*
-import com.cj.ticketsys.svc.b2b.B2BCtripSvc
-import com.cj.ticketsys.svc.b2b.CtripRequest
-import com.cj.ticketsys.svc.b2b.CtripResponseHeader
-import com.cj.ticketsys.svc.b2b.CtripResponseMessage
+import com.cj.ticketsys.svc.b2b.ctrip.B2BCtripSvc
+import com.cj.ticketsys.svc.b2b.ctrip.CtripRequest
+import com.cj.ticketsys.svc.b2b.ctrip.CtripResponseHeader
+import com.cj.ticketsys.svc.b2b.ctrip.CtripResponseMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.transaction.annotation.Transactional
@@ -34,6 +33,7 @@ class CtripOrderController {
     @Autowired
     private lateinit var subOrderDao: SubOrderDao
 
+    @Autowired
     private lateinit var partnerDao: PartnerDao
 
     @Autowired
@@ -41,9 +41,6 @@ class CtripOrderController {
 
     @Autowired
     private lateinit var ctripSvc: B2BCtripSvc
-
-    @Autowired
-    private lateinit var b2bDao: B2bDao
 
     @Autowired
     private lateinit var b2bCtripDao: B2bCtripDao
@@ -78,8 +75,8 @@ class CtripOrderController {
     @PostMapping("momo")
     @Transactional(rollbackFor = [Exception::class])
     fun ctripOrder(
-            @RequestBody orderRequest: CtripRequest<String>,
-            req: HttpServletRequest
+        @RequestBody orderRequest: CtripRequest<String>,
+        req: HttpServletRequest
     ): Any {
         val method = orderRequest.header!!.serviceName
         val reqTime = orderRequest.header!!.requestTime
@@ -136,7 +133,7 @@ class CtripOrderController {
             }
         }
         if(resp.header!!.resultCode == "0000") {
-            val respOk =  CtripResponseMessage<String>()
+            val respOk = CtripResponseMessage<String>()
             respOk.header = resp.header
             resp.body = Encrypt.encrypt(JSON.toJSONString(resp.body),aesSecret,aesIVSecret)
             return resp
@@ -148,9 +145,10 @@ class CtripOrderController {
     fun verifyOrder(
             data: CtripCreateOrderBody,
             req: HttpServletRequest
-    ):CtripResponseMessage<CtripVerifyOrderResponseBody> {
+    ): CtripResponseMessage<CtripVerifyOrderResponseBody> {
         val items = data.items
-        val resp = CtripResponseMessage<CtripVerifyOrderResponseBody>()
+        val resp =
+            CtripResponseMessage<CtripVerifyOrderResponseBody>()
         val header = CtripResponseHeader()
         if (items == null) {
             resp.header!!.resultCode = "0001"
@@ -221,7 +219,8 @@ class CtripOrderController {
             req: HttpServletRequest
     ): CtripResponseMessage<CtripCreateOrderResponseBody> {
 
-        val resp = CtripResponseMessage<CtripCreateOrderResponseBody>()
+        val resp =
+            CtripResponseMessage<CtripCreateOrderResponseBody>()
         resp.header = CtripResponseHeader()
         val respBody = CtripCreateOrderResponseBody()
         val bodyItems = ArrayList<CtripCreateOrderResponseBodyItem>()
@@ -231,8 +230,7 @@ class CtripOrderController {
             resp.header!!.resultMessage = "报文解析失败"
             return resp
         }
-        val order = b2bDao.getOrderByOtaId(data.otaOrderId,
-            B2bOtaCategory.Ctrip.code())
+        val order = b2bCtripDao.getOrderByOtaId(data.otaOrderId)
         if(order != null) {
             resp.header!!.resultCode = "0000"
             resp.header!!.resultMessage = "订单已存在"
@@ -398,10 +396,10 @@ class CtripOrderController {
             data: CancelOrderBody,
             req: HttpServletRequest
     ): CtripResponseMessage<CtripCancelOrderResponseBody> {
-        val resp = CtripResponseMessage<CtripCancelOrderResponseBody>()
+        val resp =
+            CtripResponseMessage<CtripCancelOrderResponseBody>()
         resp.header = CtripResponseHeader()
-        val b2bOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,
-            B2bOtaCategory.Ctrip.code())
+        val b2bOrder = b2bCtripDao.getOrderByOtaId(data.otaOrderId!!)
         if(b2bOrder == null) {
             resp.header!!.resultCode = "2001"
             resp.header!!.resultMessage = "该订单号不存在"
@@ -457,7 +455,8 @@ class CtripOrderController {
             data: CtripModifyOrderBody,
             req: HttpServletRequest
     ): CtripResponseMessage<CtripModifyOrderResponseBody> {
-        val resp = CtripResponseMessage<CtripModifyOrderResponseBody>()
+        val resp =
+            CtripResponseMessage<CtripModifyOrderResponseBody>()
         resp.header = CtripResponseHeader()
         if(data.supplierOrderId == null) {
             resp.header!!.resultCode = "0001"
@@ -533,7 +532,8 @@ class CtripOrderController {
             data: CtripRefundOrderBody,
             req: HttpServletRequest
     ): CtripResponseMessage<CtripRefundOrderResponseBody> {
-        val resp = CtripResponseMessage<CtripRefundOrderResponseBody>()
+        val resp =
+            CtripResponseMessage<CtripRefundOrderResponseBody>()
         resp.header = CtripResponseHeader()
         val order = orderDao.get(data.supplierOrderId!!)
         val subOrders = subOrderDao.gets(data.supplierOrderId!!)
@@ -587,8 +587,7 @@ class CtripOrderController {
             resp.header!!.resultMessage = "该订单号不存在"
             return resp
         }
-        val cOrder = b2bDao.getOrderByOtaId(data.otaOrderId!!,
-            B2bOtaCategory.Ctrip.code())
+        val cOrder = b2bCtripDao.getOrderByOtaId(data.otaOrderId!!)
         if(cOrder == null) {
             resp.header!!.resultCode = "4001"
             resp.header!!.resultMessage = "该订单号不存在"

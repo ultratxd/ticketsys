@@ -14,7 +14,6 @@ class SpotItemSubOrder: PropertyEntity() {
     var nums:Int = 0
     var perNums:Int = 0
     var createTime: Date = Date()
-    var used:Int = 0
     var scenicId:Int = 0
     var scenicSpotId:Int = 0
 }

@@ -35,6 +35,8 @@ class TicketPriceSnapshotDto {
     var channelType: Short? = null
     var name: String = ""
     var price: Double = 0.0
+    @JsonProperty("original_price")
+    var originalPrice: Double? = null
     @JsonProperty("refund_type")
     var refundType: Short? = null
     @JsonProperty("title")

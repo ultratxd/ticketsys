@@ -37,7 +37,6 @@ class MSpotItemSubOrderTransformer : DocTransformer<SpotItemSubOrder, MSpotItemS
         dto.nums = data.nums
         dto.perNums = data.perNums
         dto.createTime = data.createTime
-        dto.used = data.used
         dto.scenicId = data.scenicId
         dto.scenicSpotId = data.scenicSpotId
 

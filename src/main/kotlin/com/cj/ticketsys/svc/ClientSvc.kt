@@ -27,4 +27,6 @@ interface ClientSvc {
     fun getClientGateLogs(page_num: Int, page_size: Int): ResultT<PageResult<ClientGateLog>>
     fun getClientOrders(page_num: Int, page_size: Int, orderType:Int?): PagedList<ClientOrder>
     fun getClientSubOrders(page_num: Int, page_size: Int): ResultT<PageResult<ClientSubOrder>>
+
+    fun queryClientSubOrder(clientId:Int): ClientSubOrder?
 }

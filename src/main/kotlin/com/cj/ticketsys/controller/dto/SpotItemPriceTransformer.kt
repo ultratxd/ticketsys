@@ -11,13 +11,14 @@ class SpotItemPriceTransformer: DocTransformer<SpotItemPrice, SpotItemPriceDto> 
         val dto = SpotItemPriceDto()
         dto.id = data.id
         dto.name = data.name
-        dto.channelType = data.channelType
+        dto.channelType = data.channelType.value
         dto.desc = data.desc
         dto.itemId = data.itemId
         dto.solds = data.solds
         dto.state = data.state
         dto.stocks = data.stocks
         dto.unit = data.unit
+        dto.price = data.price
         return dto
     }
 }

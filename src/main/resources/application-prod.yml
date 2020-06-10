@@ -10,7 +10,7 @@ server:
 spring:
   datasource:
     name: mydb
-    url: jdbc:mysql://${MYSQL_HOST}/cj_ticket?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
+    url: jdbc:mysql://${MYSQL_HOST}/${DB_NAME}?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&autoReconnect=true
     username: ${MYSQL_USER}
     password: ${MYSQL_PWD}
     type: com.alibaba.druid.pool.DruidDataSource
@@ -64,4 +64,6 @@ b2b:
     aesSecret: 518fa582544823a7
     aesIVSecret: 4d67fa77f78da8fc
     notifyUrl: https://ttdstp.ctrip.com/api/order/notice.do
+    momoSoptId: 1
+  lvmm:
     momoSoptId: 1

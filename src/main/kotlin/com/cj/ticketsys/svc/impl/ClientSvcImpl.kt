@@ -369,4 +369,8 @@ class ClientSvcImpl : ClientSvc {
         return subOrder
     }
 
+
+    override fun queryClientSubOrder(clientId:Int): ClientSubOrder? {
+        return clientDataDao.querySubOrder(clientId)
+    }
 }

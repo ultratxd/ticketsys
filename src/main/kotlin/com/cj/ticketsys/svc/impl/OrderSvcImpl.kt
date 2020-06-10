@@ -97,6 +97,19 @@ class OrderSvcImpl : OrderSvc {
     }
 
     @Transactional(rollbackFor = [Exception::class])
+    override fun refundOrder(orderNo:String,refundTime:Date,refundNo:String):Boolean {
+        val order = orderDao.get(orderNo) ?: return false
+        order.state = OrderStates.Refunded
+        order.refundTime = refundTime
+        order.refundNo = refundNo
+        val c = orderDao.update(order)
+        if (c > 0) {
+            subOrderDao.batchUpadte(orderNo, OrderStates.Refunded, null, null, refundTime, refundNo)
+        }
+        return true
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
     override fun completedEnter(orderNo: String, enterCode: String, provider: OrderTicketCodeProviders): Boolean {
         val code = orderTicketCodeDao.getByCode(enterCode, provider) ?: return false
         if (code.orderId != orderNo) return false

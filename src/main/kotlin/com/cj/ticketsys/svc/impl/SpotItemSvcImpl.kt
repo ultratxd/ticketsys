@@ -2,7 +2,9 @@ package com.cj.ticketsys.svc.impl
 
 import com.cj.ticketsys.dao.SpotItemDao
 import com.cj.ticketsys.entities.ChannelTypes
+import com.cj.ticketsys.entities.OrderStates
 import com.cj.ticketsys.entities.PagedList
+import com.cj.ticketsys.entities.TicketCodeStates
 import com.cj.ticketsys.entities.spotItem.*
 import com.cj.ticketsys.svc.ItemOrderSvc
 import com.cj.ticketsys.svc.SpotItemSvc
@@ -10,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.interceptor.TransactionAspectSupport
+import java.util.*
+import kotlin.collections.ArrayList
 
 @Service
 class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
@@ -19,6 +23,10 @@ class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
 
     override fun querySpotItems(scenicSpotId: Int): List<SpotItem> {
         return spotItemDao.querySpotItems(scenicSpotId)
+    }
+
+    override fun queryAllSpotItems():List<SpotItem> {
+        return spotItemDao.queryAllSpotItems()
     }
 
     override fun querySpotItemsByChannel(spotId:Int, channelType: ChannelTypes): List<SpotItem> {
@@ -148,6 +156,17 @@ class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
     }
 
     /**
+     * 设置订单提取码
+     */
+    override fun setOrderCode(orderId:String,code:String): Boolean {
+        return spotItemDao.updateOrderCode(orderId,code) > 0
+    }
+
+    override fun setOrderState(orderId:String,state:OrderStates):Boolean {
+        return spotItemDao.updateOrderState(orderId,state) > 0
+    }
+
+    /**
      * 查询订单
      */
     override fun queryOrders(query: SpotItemOrderQuery,page:Int,size:Int): PagedList<SpotItemOrder> {
@@ -197,5 +216,27 @@ class SpotItemSvcImpl : SpotItemSvc, ItemOrderSvc {
             return false
         }
         return true
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    override fun cancelOrder(orderNo: String): Boolean {
+        val c = spotItemDao.updateOrderState(orderNo, OrderStates.Cancel)
+        if (c > 0) {
+            val subOrders = spotItemDao.querySubOrderByOrderId(orderNo)
+            for (subOrder in subOrders) {
+                spotItemDao.incrSpotItemPriceSolds(subOrder.itemPid, -subOrder.nums)
+            }
+        }
+        return c > 0
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    override fun completedPay(orderNo: String, payTime: Date, payNo: String): Boolean {
+        val order = spotItemDao.getOrder(orderNo) ?: return false
+        order.state = OrderStates.Paied
+        order.payTime = payTime
+        order.payNo = payNo
+        val c = spotItemDao.updateOrder(order)
+        return c > 0
     }
 }

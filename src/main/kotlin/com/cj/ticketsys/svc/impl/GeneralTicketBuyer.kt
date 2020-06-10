@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
@@ -152,7 +153,7 @@ class GeneralTicketBuyer : TicketBuyer {
             subOrders.add(subOrder)
         }
         val buyOrder = Order()
-        buyOrder.orderId = idBuilder.newId("ORDER")
+        buyOrder.orderId = idBuilder.newId(String.format("%02d", order.partner!!.channelType.value))
         buyOrder.price = totalMoney
         buyOrder.childs = subOrders.size
         buyOrder.channelId = order.partner!!.id
@@ -166,6 +167,7 @@ class GeneralTicketBuyer : TicketBuyer {
             result.order = buyOrder
             return result
         }
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
         return BuyResult("fail", "创建订单失败")
     }
 }

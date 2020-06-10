@@ -37,6 +37,8 @@ class TicketPriceSnapshot {
     var channelType: ChannelTypes = ChannelTypes.Rack
     var name: String = ""
     var price: Double = 0.0
+    @JsonProperty("original_price")
+    var originalPrice: Double? = 0.0
     @JsonProperty("create_time")
     var createTime: Date = Date()
     var stocks: Int = 0

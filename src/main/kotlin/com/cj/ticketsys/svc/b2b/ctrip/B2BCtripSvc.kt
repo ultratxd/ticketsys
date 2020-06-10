@@ -1,15 +1,17 @@
-package com.cj.ticketsys.svc.b2b
+package com.cj.ticketsys.svc.b2b.ctrip
 
 import com.alibaba.druid.util.Utils.md5
 import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.controller.b2b.ctrip.CtripCreateOrderBody
 import com.cj.ticketsys.controller.b2b.ctrip.Encrypt
 import com.cj.ticketsys.dao.B2bCtripDao
-import com.cj.ticketsys.dao.B2bDao
 import com.cj.ticketsys.dao.OrderTicketCodeDao
 import com.cj.ticketsys.dao.TicketPriceDao
 import com.cj.ticketsys.entities.ChannelTypes
 import com.cj.ticketsys.entities.TicketPrice
+import com.cj.ticketsys.entities.b2b.ctrip.B2bContact
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripCoupon
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripOrder
 import com.cj.ticketsys.entities.b2b.ctrip.*
 import com.cj.ticketsys.svc.PriceBinder
 import com.cj.ticketsys.svc.Utils
@@ -36,9 +38,6 @@ class B2BCtripSvc {
 
     @Autowired
     private lateinit var priceDao: TicketPriceDao
-
-    @Autowired
-    private lateinit var b2bDao:  B2bDao
 
     @Autowired
     private lateinit var b2bCtripDao: B2bCtripDao
@@ -123,7 +122,8 @@ class B2BCtripSvc {
                 .build();
         val resp = client.newCall(request).execute()
         val respBody = resp.body.toString()
-        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        val respResult = JSON.parseObject(respBody,
+            CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
             return true
         }
@@ -177,7 +177,8 @@ class B2BCtripSvc {
                 .build();
         val resp = client.newCall(request).execute()
         val respBody = resp.body.toString()
-        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        val respResult = JSON.parseObject(respBody,
+            CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
             return true
         }
@@ -189,7 +190,7 @@ class B2BCtripSvc {
      */
     fun consumedNotice(orderId:String):Boolean {
         val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
-        val order = b2bDao.getOrder(orderId, B2bOtaCategory.Ctrip.code()) ?: return false
+        val order = b2bCtripDao.getOrder(orderId) ?: return false
 
         val ctripBody = CtripConsumedNoticeBody()
         val dateFmt = SimpleDateFormat("yyyy-MM-dd")
@@ -207,7 +208,7 @@ class B2BCtripSvc {
             cItem.remark = item.remark
             cItem.lostAmount = item.price
             cItem.lostAmountCurrency = item.priceCurrency
-            ctripBody!!.items!!.add(cItem)
+            ctripBody.items!!.add(cItem)
         }
         ctripBody.otaOrderId = order.otaId
         ctripBody.supplierOrderId = order.orderId
@@ -233,7 +234,8 @@ class B2BCtripSvc {
                 .build();
         val resp = client.newCall(request).execute()
         val respBody = resp.body.toString()
-        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        val respResult = JSON.parseObject(respBody,
+            CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
             return true
         }
@@ -245,21 +247,25 @@ class B2BCtripSvc {
      */
     fun travelNotice(orderId:String):Boolean {
         val orderItems = b2bCtripDao.getItemsByOrderId(orderId)
-        val order = b2bDao.getOrder(orderId, B2bOtaCategory.Ctrip.code()) ?: return false
+        val order = b2bCtripDao.getOrder(orderId) ?: return false
         val ctripBody = CtripTravelNoticeBody()
 
         val tCode = orderTicketCodeDao.get(orderId) ?: return false
         for (item in orderItems) {
-            ctripBody.vouchers.add(CtripTravelNoticeVoucher(
+            ctripBody.vouchers.add(
+                CtripTravelNoticeVoucher(
                     itemId = item.itemId,
                     voucherCode = tCode.code,
                     voucherData = "",
                     voucherType = 3
-            ))
-            ctripBody.items.add(CtripTravelNoticeItem(
+                )
+            )
+            ctripBody.items.add(
+                CtripTravelNoticeItem(
                     itemId = item.itemId,
                     remark = item.remark
-            ))
+                )
+            )
         }
         ctripBody.otaOrderId = order.otaId
         ctripBody.supplierOrderId = orderId
@@ -285,7 +291,8 @@ class B2BCtripSvc {
                 .build();
         val resp = client.newCall(request).execute()
         val respBody = resp.body.toString()
-        val respResult = JSON.parseObject(respBody,CtripResponseHeader::class.java)
+        val respResult = JSON.parseObject(respBody,
+            CtripResponseHeader::class.java)
         if(respResult.resultCode.equals("0000")) {
             return true
         }
@@ -307,16 +314,15 @@ class B2BCtripSvc {
      * 创建保存订单
      */
     @Transactional(rollbackFor = [Exception::class])
-    fun createOrder(order: CtripCreateOrderBody, orderId:String): B2bOrder? {
-        val b2bOrder = B2bOrder()
-        b2bOrder.ota = B2bOtaCategory.Ctrip.code()
+    fun createOrder(order: CtripCreateOrderBody, orderId:String): B2bCtripOrder? {
+        val b2bOrder = B2bCtripOrder()
         b2bOrder.orderId = orderId
         b2bOrder.confirmType = order.confirmType
         b2bOrder.items = order.items?.count() ?: 0
         b2bOrder.quantity = order.items?.sumBy { a->a!!.quantity ?: 0 } ?: 0
         b2bOrder.otaId = order.otaOrderId
         b2bOrder.createTime = Date()
-        var c = b2bDao.saveOrder(b2bOrder)
+        var c = b2bCtripDao.saveOrder(b2bOrder)
         if(c <= 0) {
             return null
         }
@@ -330,7 +336,7 @@ class B2BCtripSvc {
                 b2bContact.name = contact?.name
                 b2bContact.optionalIntlCode = contact?.optionalIntlCode
                 b2bContact.optionalMobile = contact?.optionalMobile
-                c = b2bDao.saveContact(b2bContact)
+                c = b2bCtripDao.saveContact(b2bContact)
                 if(c <= 0) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return null
@@ -339,14 +345,14 @@ class B2BCtripSvc {
         }
         if(order.coupons != null) {
             for(coupon in order.coupons!!) {
-                val b2bCoupon = B2bCoupon()
+                val b2bCoupon = B2bCtripCoupon()
                 b2bCoupon.otaId = order.otaOrderId
                 b2bCoupon.name = coupon?.name
                 b2bCoupon.type = coupon?.type
                 b2bCoupon.amount = coupon?.amount?.toDouble()
                 b2bCoupon.amountCurrency = coupon?.amountCurrency
                 b2bCoupon.code = coupon?.code
-                c = b2bDao.saveCoupon(b2bCoupon)
+                c = b2bCtripDao.saveCoupon(b2bCoupon)
                 if(c <= 0) {
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
                     return null
@@ -526,11 +532,11 @@ data class CtripConsumedNoticeBodyItemPolicy(
  * 订单通知
  */
 data class CtripTravelNoticeBody(
-        var items: MutableList<CtripTravelNoticeItem?> = ArrayList(),
-        var vouchers: MutableList<CtripTravelNoticeVoucher> = ArrayList(),
-        var otaOrderId: String? = "",
-        var sequenceId: String? = "",
-        var supplierOrderId: String? = ""
+    var items: MutableList<CtripTravelNoticeItem?> = ArrayList(),
+    var vouchers: MutableList<CtripTravelNoticeVoucher> = ArrayList(),
+    var otaOrderId: String? = "",
+    var sequenceId: String? = "",
+    var supplierOrderId: String? = ""
 )
 
 data class CtripTravelNoticeVoucher(

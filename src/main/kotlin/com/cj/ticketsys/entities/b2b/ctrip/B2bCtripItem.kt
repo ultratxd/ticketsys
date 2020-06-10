@@ -1,5 +1,6 @@
 package com.cj.ticketsys.entities.b2b.ctrip
 
+import com.cj.ticketsys.entities.b2b.IB2bOta
 import java.util.*
 
 class B2bCtripItem : IB2bOta {

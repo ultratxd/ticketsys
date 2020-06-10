@@ -25,9 +25,11 @@ class SpotItemOrderDto : Serializable {
     @JsonProperty("refund_no")
     var refundNo:String? = null
     @JsonProperty("state")
-    var state: OrderStates = OrderStates.Init
+    var state: Short = OrderStates.Init.value
+    @JsonProperty("code")
+    var code: String? = null
     @JsonProperty("price_discount_type")
-    var priceDiscountTypes: PriceDiscountTypes = PriceDiscountTypes.Nothing
+    var priceDiscountTypes: Short = PriceDiscountTypes.Nothing.value
 
     @JsonProperty("sub_orders")
     var subOrders:MutableList<SpotItemSubOrderDto> = ArrayList()

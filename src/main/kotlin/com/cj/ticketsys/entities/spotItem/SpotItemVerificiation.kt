@@ -4,8 +4,10 @@ import java.util.*
 
 class SpotItemVerificiation {
     var id:Int = 0
-    var ticketOrderId:String? = null
+    var clientOrderNo:String? = null
+    var clientQrCode:String? = null
     var itemOrderId:String? = null
+    var itemSubId:Int? = null
     var orderType:SpotOrderTypes = SpotOrderTypes.BUY
     var createTime:Date = Date()
     var nums:Int = 0

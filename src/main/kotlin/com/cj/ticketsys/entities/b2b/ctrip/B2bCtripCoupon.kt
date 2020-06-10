@@ -1,6 +1,8 @@
 package com.cj.ticketsys.entities.b2b.ctrip
 
-class B2bCoupon : IB2bOta {
+import com.cj.ticketsys.entities.b2b.IB2bOta
+
+class B2bCtripCoupon : IB2bOta {
     var id:Int = 0
     override var otaId:String = ""
     var amount: Double? = null

@@ -22,9 +22,10 @@ class SpotItemOrderTransformer : DocTransformer<SpotItemOrder, SpotItemOrderDto>
         dto.payNo = data.payNo
         dto.refundNo = data.refundNo
         dto.refundTime = data.refundTime
+        dto.code = data.code
 
-        dto.state = data.state
-        dto.priceDiscountTypes = data.priceDiscountTypes
+        dto.state = data.state.value
+        dto.priceDiscountTypes = data.priceDiscountTypes.value
 
         return dto
     }

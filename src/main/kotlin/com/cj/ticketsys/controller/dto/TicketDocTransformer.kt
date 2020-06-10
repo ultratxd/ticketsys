@@ -30,6 +30,12 @@ class TicketDocTransformer : DocTransformer<Ticket,TicketDto> {
         dto.iconUrl = data.iconUrl
         dto.title = data.title
 
+        if(data.buyStartDate != null) {
+            dto.buyStartDate = data.buyStartDate
+        }
+        if(data.buyEndDate != null) {
+            dto.buyEndDate = data.buyEndDate
+        }
 
 
         if(data.prices.any()) {

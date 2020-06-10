@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
@@ -38,7 +39,7 @@ class GeneralItemBuyer: ItemBuyer {
         var totalMoney = 0.0
         var totalCount = 0
         val subOrders = ArrayList<SpotItemSubOrder>()
-        val orderId = idBuilder.newId("ITEM")
+        val orderId = idBuilder.newId("ITEM" + String.format("%02d", order.partner!!.channelType.value))
         for (bt in order.items) {
             val price = spotItemSvc.getSpotItemPrice(bt.itemPriceId) ?: return BuyItemResult("BUY:2002", "购买的项目价格不存在")
             val item = spotItemSvc.getSpotItem(price.itemId) ?: return BuyItemResult("BUY:2003", "购买的项目不存在")
@@ -56,25 +57,25 @@ class GeneralItemBuyer: ItemBuyer {
             subOrder.nums = bt.itemNums
             subOrder.perNums = item.personalNums
             subOrder.createTime = Date()
-            subOrder.used = 0
             subOrder.scenicId = item.scenicId
             subOrder.scenicSpotId = item.scenicSpotId
             subOrders.add(subOrder)
         }
-        val order = SpotItemOrder()
-        order.orderId = orderId
-        order.totalPrice = totalMoney
-        order.createTime = Date()
-        order.nums = subOrders.size
-        order.channelId= order.channelId
-        order.channelUid = order.channelUid
-        order.buyType = order.buyType
-        val ok = itemOrderSvc.create(order, subOrders)
+        val sOrder = SpotItemOrder()
+        sOrder.orderId = orderId
+        sOrder.totalPrice = totalMoney
+        sOrder.createTime = Date()
+        sOrder.nums = subOrders.size
+        sOrder.channelId= order.partner!!.id
+        sOrder.channelUid = order.channelUid
+        sOrder.buyType = order.buyType
+        val ok = itemOrderSvc.create(sOrder, subOrders)
         if (ok) {
             val result = BuyItemResult(RESULT_SUCCESS, "ok")
-            result.order = order
+            result.order = sOrder
             return result
         }
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
         return BuyItemResult("fail", "创建订单失败")
     }
 }

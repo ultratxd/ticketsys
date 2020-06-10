@@ -1,14 +1,44 @@
 package com.cj.ticketsys.dao
 
-import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripAdjunction
-import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripItem
-import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripPassenger
-import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripExpresses
+import com.cj.ticketsys.entities.b2b.ctrip.B2bContact
+import com.cj.ticketsys.entities.b2b.ctrip.B2bCtripCoupon
+import com.cj.ticketsys.entities.b2b.ctrip.*
 import org.apache.ibatis.annotations.*
 import java.util.*
 
 @Mapper
 interface B2bCtripDao {
+    @Insert("insert into b2b_ctrip_orders(ota_id,order_id,confirm_type,quantity,items,create_time,properties) values(#{otaId},#{orderId},#{confirmType},#{quantity},#{items},#{createTime},#{properties})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    fun saveOrder(ctripOrder: B2bCtripOrder): Long
+
+    @Select("select * from b2b_ctrip_orders where ota_id=#{otaId}")
+    @Results(
+        Result(column = "ota_id", property = "otaId"),
+        Result(column = "order_id", property = "orderId"),
+        Result(column = "confirm_type", property = "confirmType"),
+        Result(column = "create_ime", property = "createTime")
+    )
+    fun getOrderByOtaId(otaId:String): B2bCtripOrder?
+
+    @Select("select * from b2b_ctrip_orders where order_id=#{orderId}")
+    @Results(
+        Result(column = "ota_id", property = "otaId"),
+        Result(column = "order_id", property = "orderId"),
+        Result(column = "confirm_type", property = "confirmType"),
+        Result(column = "create_ime", property = "createTime")
+    )
+    fun getOrder(orderId:String): B2bCtripOrder?
+
+    @Insert("insert into b2b_ctrip_contacts(ota_id,name,mobile,intl_code,opt_mobile,opt_intl_code,email) " +
+            "values(#{otaId},#{name},#{mobile},#{intlCode},#{optionalMobile},#{optionalIntlCode},#{email})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    fun saveContact(contact: B2bContact):Long
+
+    @Insert("insert into b2b_ctrip_coupons(ota_id,coup_type,code,name,amount,amount_currency) " +
+            "values(#{otaId},#{type},#{code},#{name},#{amount},#{amountCurrency})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    fun saveCoupon(contact: B2bCtripCoupon):Long
 
     @Insert("insert into b2b_ctrip_expresses(ota_id,item_id,express_type,name,mobile,inil_code,country,province,city,district,address) " +
             "values(#{otaId},#{itemId},#{type},#{name},#{mobile},#{intlCode},#{country},#{province},#{city},#{district},#{address})")

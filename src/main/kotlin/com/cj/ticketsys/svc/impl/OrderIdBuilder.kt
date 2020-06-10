@@ -18,7 +18,6 @@ class OrderIdBuilder : IdBuilder {
         var i = 0L
         try {
             i = cache.incr(SEQ_KEY, 1)
-
         } catch (e: Exception) {
             e.printStackTrace()
             if (i <= 0) {
@@ -28,7 +27,7 @@ class OrderIdBuilder : IdBuilder {
         }
         val sdf = SimpleDateFormat("yyyyMM")
         val ym = sdf.format(Date())
-        return String.format("$ym%06d%05d", i,Random().nextInt(100000))
+        return String.format("$ym%s%06d%03d",tag, i,Random().nextInt(1000))
     }
 }
 

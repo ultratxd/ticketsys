@@ -1,26 +1,38 @@
 package com.cj.ticketsys.controller.manage
 
+import com.alibaba.fastjson.JSON
 import com.cj.ticketsys.controller.BaseController
 import com.cj.ticketsys.controller.dto.RESULT_FAIL
 import com.cj.ticketsys.controller.dto.RESULT_SUCCESS
 import com.cj.ticketsys.controller.dto.ResultT
 import com.cj.ticketsys.controller.manage.dto.MOrderDto
+import com.cj.ticketsys.controller.manage.dto.MTicketCardDto
+import com.cj.ticketsys.dao.CardTicketDao
 import com.cj.ticketsys.dao.OrderDao
 import com.cj.ticketsys.dao.OrderQuery
-import com.cj.ticketsys.entities.BuyTypes
-import com.cj.ticketsys.entities.Order
-import com.cj.ticketsys.entities.OrderStates
-import com.cj.ticketsys.entities.PagedList
+import com.cj.ticketsys.dao.SubOrderDao
+import com.cj.ticketsys.entities.*
 import com.cj.ticketsys.svc.DocTransformer
+import com.cj.ticketsys.svc.TicketSnapshot
 import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.logging.SimpleFormatter
+import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("/ota/v1/manage/order")
 class ManageOrderController : BaseController() {
     @Autowired
     private lateinit var orderDao: OrderDao
+
+    @Autowired
+    private lateinit var subOrderDao: SubOrderDao
+
+    @Autowired
+    private lateinit var cardTicketDao: CardTicketDao
 
     @Autowired
     private lateinit var orderTransformer: DocTransformer<Order,MOrderDto>
@@ -101,4 +113,107 @@ class ManageOrderController : BaseController() {
         return ResultT(RESULT_SUCCESS, "ok", pagedList)
     }
 
+    @GetMapping("card/by_code/{code}")
+    fun getCardsByCode(
+        @PathVariable("code",required = true) code:String
+    ):ResultT<MTicketCardDto> {
+        if(Strings.isNullOrEmpty(code)) {
+            return ResultT(RESULT_FAIL,"激活码不存在")
+        }
+        val cardTkt = cardTicketDao.getByCode(code) ?: return ResultT(RESULT_FAIL,"激活码不存在")
+        val dto = MTicketCardDto()
+        dto.orderNo = cardTkt.orderId
+        dto.buyTime = cardTkt.buyTime
+        dto.cardNo = cardTkt.cardNo
+        dto.entityCardNo = cardTkt.entityCardNo
+        val subOrder = subOrderDao.get(cardTkt.orderSubId)
+        if(subOrder != null) {
+            try {
+                val tktSnapshot = JSON.parseObject(subOrder.snapshot, TicketSnapshot::class.java)
+                dto.ticketName = tktSnapshot.name
+            }catch (ee:Exception) {}
+        }
+        dto.activatedTime = cardTkt.activatedTime
+        if(cardTkt.bindId != null) {
+            val bindInfo = cardTicketDao.getBindInfoById(cardTkt.bindId!!)
+            if(bindInfo != null) {
+                dto.activatedMobile = bindInfo.mobile
+                dto.activatedFullname = bindInfo.fullName
+                dto.activatedIdCard = bindInfo.idCard
+            }
+        }
+        dto.code = cardTkt.code
+        dto.lastActiveTime = cardTkt.lastActivateTime
+        if(dto.activatedTime != null) {
+            dto.isActivated = true
+        } else {
+            /**
+             * 未激活则生成预定义卡号
+             */
+            while(true){
+                dto.cardNo = String.format("100%05d", (cardTicketDao.getMaxCardNo() + 1))
+                if(cardTicketDao.getByCardNo(dto.cardNo!!) == null) {
+                    break
+                }
+            }
+        }
+        dto.dayIn = cardTkt.dayIn
+
+        return ResultT(RESULT_SUCCESS,"ok",dto)
+    }
+
+    @PutMapping("card/active/{code}")
+    fun activeCard(
+        @PathVariable("code",required = true) code:String,
+        @RequestParam("to_uid",required = true) toUid:String,
+        @RequestParam("card_no",required = true) cardNo:String,
+        @RequestParam("full_name",required = true) fullName:String,
+        @RequestParam("id_card",required = true) idCard:String,
+        @RequestParam("mobile",required = true) mobile:String,
+        @RequestParam("expired_time",required = true) expiredTime:String,
+        @RequestParam("day_in",required = true) dayIn:Int,
+        @RequestParam("entity_card_no",required = false) entityCardNo:String?,
+        @RequestParam("avatar",required = false) avatar:String?
+    ):com.cj.ticketsys.controller.dto.Result {
+        if(Strings.isNullOrEmpty(code)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"激活码不存在")
+        }
+        if(Strings.isNullOrEmpty(cardNo) || Strings.isNullOrEmpty(fullName)
+            || Strings.isNullOrEmpty(idCard) || Strings.isNullOrEmpty(mobile)
+            || Strings.isNullOrEmpty(toUid)) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"参数错误")
+        }
+        val dateFmt = SimpleDateFormat("yyyy-MM-dd")
+        var expiredDate: Date? = null
+        try{
+            expiredDate = dateFmt.parse(expiredTime)
+        }catch (ee:Exception) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"过期参数错误")
+        }
+        val cardTkt = cardTicketDao.getByCode(code) ?: return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"激活码不存在")
+        if(cardTkt.activatedTime != null) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"激活码已被激活")
+        }
+        val bindInfo = CardTicketBindInfo()
+        bindInfo.fullName = fullName
+        bindInfo.idCard = idCard
+        bindInfo.mobile = mobile
+        bindInfo.avatar = avatar
+        val ok = cardTicketDao.insertBindInfo(bindInfo) > 0
+        if(!ok) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL,"激活失败,请联系管理员")
+        }
+        cardTkt.activatedTime = Date()
+        cardTkt.bindId = bindInfo.id
+        cardTkt.cardNo = cardNo
+        cardTkt.dayIn = dayIn
+        cardTkt.expireTime = expiredDate
+        cardTkt.entityCardNo = entityCardNo
+        cardTkt.toUid = toUid
+        val succ = cardTicketDao.update(cardTkt) > 0
+        if(succ) {
+            return com.cj.ticketsys.controller.dto.Result(RESULT_SUCCESS, "激活成功")
+        }
+        return com.cj.ticketsys.controller.dto.Result(RESULT_FAIL, "激活失败")
+    }
 }

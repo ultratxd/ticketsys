@@ -23,4 +23,10 @@ open class CardTicketDto(@JsonProperty("id") val id:Int) {
     var state:Short = 0 //0待激活,1已激活
     @JsonProperty("ticket_snapshot")
     var ticketSnapshot:TicketSnapshotDto? = null
+
+    @JsonProperty("entity_card_no")
+    var entityCardNo:String? = null
+
+    @JsonProperty("qr_code")
+    var qrCode:String? = null
 }

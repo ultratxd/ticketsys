@@ -44,6 +44,7 @@ class TicketSnapshotCreator : SnapshotCreator<Ticket, TicketSnapshot> {
             ssPrice.channelType = price.channelType
             ssPrice.name = price.name
             ssPrice.price = price.price
+            ssPrice.originalPrice = price.originalPrice
             ssPrice.createTime = price.createTime
             ssPrice.stocks = price.stocks
             ssPrice.stockLimitType = price.stockLimitType

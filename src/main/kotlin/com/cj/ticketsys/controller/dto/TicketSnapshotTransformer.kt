@@ -37,6 +37,7 @@ class TicketSnapshotTransformer : DocTransformer<String,TicketSnapshotDto> {
                 ssPrice.channelType = tp.channelType.value
                 ssPrice.name = tp.name
                 ssPrice.price = tp.price
+                ssPrice.originalPrice = tp.originalPrice
                 ssPrice.refundType = tp.refundType.value
                 ssPrice.title = tp.title
                 ssPrice.noticeRemark = tp.noticeRemark

@@ -2,7 +2,9 @@ package com.cj.ticketsys.controller.dto
 
 import com.cj.ticketsys.dao.SubOrderDao
 import com.cj.ticketsys.entities.CardTicket
+import com.cj.ticketsys.svc.AcsCodeCipher
 import com.cj.ticketsys.svc.DocTransformer
+import com.google.common.base.Strings
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.*
@@ -12,6 +14,9 @@ class CardTicketDocTransformer : DocTransformer<CardTicket, CardTicketDto> {
 
     @Autowired
     private lateinit var subOrderDao: SubOrderDao
+
+    @Autowired
+    private lateinit var acsCodeCipher:AcsCodeCipher
 
     @Autowired
     private lateinit var snapshotTransformer: DocTransformer<String, TicketSnapshotDto>
@@ -26,6 +31,11 @@ class CardTicketDocTransformer : DocTransformer<CardTicket, CardTicketDto> {
         dto.activatedTime = data.activatedTime
         dto.lastActivateTime = data.lastActivateTime
         dto.expireTime = data.expireTime
+        dto.entityCardNo = data.entityCardNo
+
+        if(Strings.isNullOrEmpty(dto.cardNo)) {
+            dto.qrCode = acsCodeCipher.encrypt(dto.cardNo!!)
+        }
         if(data.activatedTime != null) {
             dto.state = 1
         }
